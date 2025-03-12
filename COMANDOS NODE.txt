@@ -1,0 +1,25 @@
+LANZAR SEEDERS
+npx sequelize-cli db:seed:all --debug
+QUITAR SEEDER LANZADOS
+npx sequelize-cli db:seed:undo
+LANZAR MIGRACIONES
+npx sequelize-cli db:migrate  
+QUITAR MIGRACIONES LANZADAS
+npx sequelize-cli db:migrate:undo
+
+
+
+CREAR SEEDER
+npx sequelize-cli seed:generate --name nombre_seeder
+CREAR MIGRACION
+npx sequelize-cli migration:generate --name nombre_migracion
+
+MOSTRAR ARBOL DE DIRECTORIO
+tree .\src\ /F
+
+ENTRAR EN TERMINAR DE DOCKER PARA EJECUTAR MIGRACIONES Y SEEDERS
+docker exec -it erp-backend sh
+
+CREAR DCOCKER SIN CACHE
+docker-compose build --no-cache
+docker-compose up --force-recreate
