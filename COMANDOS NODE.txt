@@ -18,8 +18,15 @@ MOSTRAR ARBOL DE DIRECTORIO
 tree .\src\ /F
 
 ENTRAR EN TERMINAR DE DOCKER PARA EJECUTAR MIGRACIONES Y SEEDERS
-docker exec -it erp-backend sh
+docker exec -it backend-rrhh sh
 
 CREAR DCOCKER SIN CACHE
 docker-compose build --no-cache
 docker-compose up --force-recreate
+
+BUSCAR PUERTO
+netstat -ano | findstr :9000
+
+ELIMINAR PUERTO EN USO
+taskkill /PID 12500 /F
+

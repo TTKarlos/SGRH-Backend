@@ -47,6 +47,10 @@ const User = sequelize.define('User', {
         defaultValue: ROLES.GERENTE,
         allowNull: false
     },
+    image: {
+        type: DataTypes.STRING(50),
+        allowNull: true
+    },
     isActive: {
         type: DataTypes.BOOLEAN,
         defaultValue: true
