@@ -28,10 +28,8 @@ module.exports = {
         },
     )
 
-    // Generate data for additional users
     const additionalUsers = await UserFactory.createMany(5)
 
-    // Insert additional users
     for (const user of additionalUsers) {
       await queryInterface.bulkInsert("Users", [user], {
         ignoreDuplicates: true,
