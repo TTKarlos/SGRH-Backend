@@ -1,4 +1,5 @@
-const AppError = require("../utils/appError")
+const AppError = require("../utils/AppError")
+
 
 const validateRequest = (schema) => async (req, res, next) => {
     try {
@@ -9,7 +10,7 @@ const validateRequest = (schema) => async (req, res, next) => {
             acc[err.path] = err.message
             return acc
         }, {})
-        next(new AppError("Validation error", 400, errors))
+        next(new AppError("Error de validación", 400, errors))
     }
 }
 

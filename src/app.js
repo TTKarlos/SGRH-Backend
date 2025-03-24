@@ -17,7 +17,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use('/api', repositoryIndex.getRoutes());
-
+app.get("/", (req, res) => {
+    res.json({
+        name: "Sistema RRHH",
+        description: "API para el sistema de gestión de recursos humanos",
+        version: "1.0.0",
+    })
+})
 app.use(errorHandler);
 
 sequelize.authenticate()

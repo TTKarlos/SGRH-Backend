@@ -1,1 +1,151 @@
-{"_type":"export","__export_format":4,"__export_date":"2025-03-14T11:55:15.335Z","__export_source":"insomnia.desktop.app:v10.3.1","resources":[{"_id":"req_92da84a9bb1d4686b18d02223b6427e5","parentId":"fld_a5cf4741fbdc47178b5e1817e0fd0af4","modified":1740590192021,"created":1740589957595,"url":"{{ _.BASE_URL }}/auth/login","name":"Login","description":"","method":"POST","body":{"mimeType":"application/json","text":"{\n\t\"email\":\"admin@example.com\",\n\t\"password\":\"password\"\n}"},"parameters":[],"headers":[{"name":"Content-Type","value":"application/json"},{"name":"User-Agent","value":"insomnia/10.3.1"}],"authentication":{},"metaSortKey":-1740589957595,"isPrivate":false,"pathParameters":[],"settingStoreCookies":true,"settingSendCookies":true,"settingDisableRenderRequestBody":false,"settingEncodeUrl":true,"settingRebuildPath":true,"settingFollowRedirects":"global","_type":"request"},{"_id":"fld_a5cf4741fbdc47178b5e1817e0fd0af4","parentId":"wrk_20b2e3bbbebd4a089397274a3761dc6f","modified":1741778036830,"created":1740589918137,"name":"SGRH-La-Sirena","description":"","environment":{"BASE_URL":"http://localhost:3000/api","token":""},"environmentPropertyOrder":{"&":["BASE_URL","token"]},"metaSortKey":-1740589918137,"environmentType":"json","kvPairData":[],"_type":"request_group"},{"_id":"wrk_20b2e3bbbebd4a089397274a3761dc6f","parentId":null,"modified":1741953278628,"created":1740589897762,"name":"SRGH-La-Sirena","description":"","scope":"collection","_type":"workspace"},{"_id":"env_958f19a920df95dece756edd10e50bf45fee99b8","parentId":"wrk_20b2e3bbbebd4a089397274a3761dc6f","modified":1740589897768,"created":1740589897768,"name":"Base Environment","data":{},"dataPropertyOrder":null,"color":null,"isPrivate":false,"metaSortKey":1740589897768,"environmentType":"kv","_type":"environment"},{"_id":"jar_958f19a920df95dece756edd10e50bf45fee99b8","parentId":"wrk_20b2e3bbbebd4a089397274a3761dc6f","modified":1740589897772,"created":1740589897772,"name":"Default Jar","cookies":[],"_type":"cookie_jar"}]}
+type: collection.insomnia.rest/5.0
+name: SRGH-La-Sirena
+meta:
+  id: wrk_33b21f2fd1dd4e19b1f8ee28123dd0bd
+  created: 1742769990693
+  modified: 1742769990693
+collection:
+  - name: SGRH-La-Sirena
+    meta:
+      id: fld_214d8a7a5baa44ce916693037602acf0
+      created: 1740589918137
+      modified: 1742807980409
+      sortKey: -1740589918137
+    children:
+      - name: Auth
+        meta:
+          id: fld_895beefc185742b5aa3ae6f829aa17af
+          created: 1742806147442
+          modified: 1742807980409
+          sortKey: -1742806147442
+        children:
+          - url: "{{ _.BASE_URL }}/auth/login"
+            name: Login
+            meta:
+              id: req_d0abe1bd7768477d9965afa43047fd0b
+              created: 1740589957595
+              modified: 1742807900965
+              isPrivate: false
+              sortKey: -1742806150868
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"email":"admin@example.com",
+                	"password":"password"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/10.3.1
+            scripts:
+              afterResponse: >-
+                const jsonBody = insomnia.response.json();
+
+                if (jsonBody.data && jsonBody.data.user && jsonBody.data.user.token) {
+                  insomnia.variables.set("token", jsonBody.data.user.token);
+                  console.log("TOKEN guardado correctamente:", jsonBody.data.user.token);
+                } else {
+                  throw new Error("No se encontró el token en la respuesta.");
+                }
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}"
+            name: Status
+            meta:
+              id: req_f361b879bca5401d80d7ead3c29c7e76
+              created: 1742806155798
+              modified: 1742806613837
+              isPrivate: false
+              sortKey: -1742806155798
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.0
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Usuarios
+        meta:
+          id: fld_598ee2aef4a6420b886ee03fc4033441
+          created: 1742806619854
+          modified: 1742806619854
+          sortKey: -1742806619854
+        children:
+          - url: "{{ _.BASE_URL }}/users"
+            name: "Mostrar Todos "
+            meta:
+              id: req_71502b9b3d8b4495b080d913d542c10b
+              created: 1742806622033
+              modified: 1742808003139
+              isPrivate: false
+              sortKey: -1742806622033
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.0
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - url: "{{ _.BASE_URL }}"
+        name: Status General
+        meta:
+          id: req_fc2a3ef288cb480c8c0b095ce2f5cef0
+          created: 1742803582513
+          modified: 1742806135316
+          isPrivate: false
+          sortKey: -1740589957695
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+    environment:
+      BASE_URL: http://localhost:3000/api
+      TOKEN: "{% response 'body', 'req_d0abe1bd7768477d9965afa43047fd0b',
+        'b64::JC5kYXRhLnVzZXIudG9rZW4=::46b', 'never', 60 %}"
+    environmentPropertyOrder:
+      "&":
+        - BASE_URL
+        - TOKEN
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_c4e2403ca0b14913859ef4854d3f5b81
+    created: 1740589897772
+    modified: 1742807980406
+environments:
+  name: Base Environment
+  meta:
+    id: env_ce16ab3609224d3494c2744a55481834
+    created: 1740589897768
+    modified: 1742807980408
+    isPrivate: false
