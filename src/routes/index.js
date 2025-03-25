@@ -1,6 +1,7 @@
 const express = require('express');
 const authRepository = require('./auth.repository');
 const userRepository = require('./user.repository');
+const permisoRepository = require('./permiso.repository');
 
 
 class ApiRouter {
@@ -12,6 +13,7 @@ class ApiRouter {
     setupRoutes() {
         this.router.use("/auth", authRepository.getRoutes());
         this.router.use("/users", userRepository.getRoutes());
+        this.router.use("/permisos", permisoRepository.getRoutes())
 
         this.router.get('/', (req, res) => {
             res.json({
@@ -20,12 +22,18 @@ class ApiRouter {
                 status: 'Running...'
             });
         });
+
+        this.router.use("*", (req, res) => {
+            res.status(404).json({
+                success: false,
+                message: "Ruta no encontrada",
+                statusCode: 404,
+            });
+        });
     }
 
     getRoutes() {
         return this.router;
     }
 }
-
-// Create and export a singleton instance
 module.exports = new ApiRouter();
