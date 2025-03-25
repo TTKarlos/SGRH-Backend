@@ -12,7 +12,7 @@ class UserRepository {
         this.router = express.Router()
         this.setupRoutes()
     }
-
+run 
     setupRoutes() {
         this.router.get("/", auth, (req, res, next) => {
             userController.getAll(req, res, next)
