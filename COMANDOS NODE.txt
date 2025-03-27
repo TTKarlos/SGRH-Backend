@@ -30,3 +30,19 @@ netstat -ano | findstr :9000
 ELIMINAR PUERTO EN USO
 taskkill /PID 12500 /F
 
+INSTALAR DOPPLER PARA SECRETOS
+Linux
+curl -Ls --tlsv1.2 --proto "=https" --retry 3 https://cli.doppler.com/install.sh | sudo sh
+Windows(Scoop)
+scoop bucket add doppler https://github.com/DopplerHQ/scoop-doppler.git
+scoop install doppler
+
+Iniciar Sesion Doppler
+doppler login
+Sincronizarlo
+doppler setup
+Update .env
+doppler secrets upload .env
+Download
+doppler secrets download .env(Name)
+
