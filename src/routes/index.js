@@ -2,6 +2,7 @@ const express = require('express');
 const authRepository = require('./auth.repository');
 const userRepository = require('./user.repository');
 const permisoRepository = require('./permiso.repository');
+const rolRepository = require('./rol.repository');
 
 
 class ApiRouter {
@@ -13,7 +14,8 @@ class ApiRouter {
     setupRoutes() {
         this.router.use("/auth", authRepository.getRoutes());
         this.router.use("/users", userRepository.getRoutes());
-        this.router.use("/permisos", permisoRepository.getRoutes())
+        this.router.use("/permisos", permisoRepository.getRoutes());
+        this.router.use("/rol", rolRepository.getRoutes());
 
         this.router.get('/', (req, res) => {
             res.json({

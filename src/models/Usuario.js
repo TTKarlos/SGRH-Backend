@@ -132,6 +132,7 @@ Usuario.prototype.clearToken = function () {
 Usuario.prototype.toJSON = function () {
     const values = { ...this.get() }
     delete values.password_hash
+    delete values.token
     return values
 }
 
