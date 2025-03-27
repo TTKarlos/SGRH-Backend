@@ -37,7 +37,7 @@ const authController = {
                 }
             }
             res.status(200).json(
-                createResponse(true, "Inicio de sesión exitoso", {
+                createResponse(true, "Inicio de sesión exitoso PRUEBA", {
                     user: {
                         id_usuario: user.id_usuario,
                         nombre_usuario: user.nombre_usuario,
