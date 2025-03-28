@@ -26,16 +26,7 @@ const authController = {
             if (!isValidPassword) {
                 return res.status(401).json(createResponse(false, "Contraseña incorrecta", null, 401))
             }
-            let token = user.token
-            if (!token) {
-                token = await user.generateAuthToken()
-            } else {
-                try {
-                    jwt.verify(token, process.env.JWT_SECRET)
-                } catch (error) {
-                    token = await user.generateAuthToken()
-                }
-            }
+            const token = await user.generateAuthToken()
             res.status(200).json(
                 createResponse(true, "Inicio de sesión exitoso PRUEBA2", {
                     user: {

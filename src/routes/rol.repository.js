@@ -10,7 +10,7 @@ class RolRepository {
     }
 
     setupRoutes() {
-        this.router.get("/", [auth, isAdmin], (req, res, next) => {
+        this.router.get("/", auth, (req, res, next) => {
             rolController.getAllRoles(req, res, next)
         })
 
