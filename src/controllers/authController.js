@@ -28,7 +28,7 @@ const authController = {
             }
             const token = await user.generateAuthToken()
             res.status(200).json(
-                createResponse(true, "Inicio de sesión exitoso PRUEBA2", {
+                createResponse(true, "Inicio de sesión exitoso !", {
                     user: {
                         id_usuario: user.id_usuario,
                         nombre_usuario: user.nombre_usuario,

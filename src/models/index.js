@@ -12,8 +12,16 @@ const { Sequelize } = require("sequelize")
 Rol.hasMany(Usuario, { foreignKey: "id_rol" })
 Usuario.belongsTo(Rol, { foreignKey: "id_rol" })
 
-Rol.belongsToMany(Permiso, { through: PermisoRol, foreignKey: "id_rol" })
-Permiso.belongsToMany(Rol, { through: PermisoRol, foreignKey: "id_permiso" })
+Rol.belongsToMany(Permiso, {
+    through: PermisoRol,
+    foreignKey: "id_rol",
+    otherKey: "id_permiso",
+})
+Permiso.belongsToMany(Rol, {
+    through: PermisoRol,
+    foreignKey: "id_permiso",
+    otherKey: "id_rol",
+})
 
 Zona.hasMany(Centro, { foreignKey: "id_zona" })
 Centro.belongsTo(Zona, { foreignKey: "id_zona" })

@@ -1,28 +1,42 @@
-const { Rol, Permiso, PermisoRol, sequelize } = require("../models")
+const Rol = require("../models/Rol")
+const Permiso = require("../models/Permiso")
+const sequelize = require("../models")
 const { createResponse } = require("../utils/responseHelpers")
 const { ROLES } = require("../utils/constants")
 
 const rolController = {
-
     getAllRoles: async (req, res, next) => {
         try {
-            const roles = await Rol.findAll({
-                include: [
-                    {
-                        model: Permiso,
-                        through: { attributes: [] },
-                    },
-                ],
+            const includeOptions = {
+                include: {
+                    model: Permiso,
+                    through: { attributes: [] },
+                },
                 order: [["nombre", "ASC"]],
-            })
+            }
 
-            res.json(createResponse(true, "Roles con permisos obtenidos exitosamente", { roles }))
+            let roles
+
+            if (req.user.id_rol === 1) {
+                roles = await Rol.findAll(includeOptions)
+            } else {
+                const userRole = await Rol.findByPk(req.user.id_rol, includeOptions)
+
+                if (!userRole) {
+                    return res.status(404).json(createResponse(false, "Rol no encontrado", null, 404))
+                }
+
+                roles = [userRole]
+            }
+
+            const message = req.user.id_rol === 1 ? "Roles con permisos obtenidos exitosamente" : "Rol obtenido exitosamente"
+
+            return res.json(createResponse(true, message, { roles }))
         } catch (error) {
-            console.error("Error al obtener roles con permisos:", error)
+            console.error("Error al obtener roles:", error)
             next(error)
         }
     },
-
 
     getRolById: async (req, res, next) => {
         try {
@@ -32,26 +46,27 @@ const rolController = {
                 return res.status(400).json(createResponse(false, "ID de rol inválido", null, 400))
             }
 
+            if (req.user.id_rol !== 1 && req.user.id_rol !== Number.parseInt(id, 10)) {
+                return res.status(403).json(createResponse(false, "No tiene permiso para acceder a este rol", null, 403))
+            }
+
             const rol = await Rol.findByPk(id, {
-                include: [
-                    {
-                        model: Permiso,
-                        through: { attributes: [] },
-                    },
-                ],
+                include: {
+                    model: Permiso,
+                    through: { attributes: [] },
+                },
             })
 
             if (!rol) {
                 return res.status(404).json(createResponse(false, `Rol con ID ${id} no encontrado`, null, 404))
             }
 
-            res.json(createResponse(true, "Rol con permisos obtenido exitosamente", { rol }))
+            return res.json(createResponse(true, "Rol con permisos obtenido exitosamente", { rol }))
         } catch (error) {
             console.error(`Error al obtener rol con ID ${req.params.id}:`, error)
             next(error)
         }
     },
-
 
     createRol: async (req, res, next) => {
         try {
@@ -61,26 +76,19 @@ const rolController = {
                 return res.status(400).json(createResponse(false, "El nombre del rol es requerido", null, 400))
             }
 
-            const rolExistente = await Rol.findOne({
-                where: { nombre },
-            })
+            const rolExistente = await Rol.findOne({ where: { nombre } })
 
             if (rolExistente) {
                 return res.status(400).json(createResponse(false, `Ya existe un rol con el nombre "${nombre}"`, null, 400))
             }
 
-            const rol = await Rol.create({
-                nombre,
-                descripcion,
-            })
-
-            res.status(201).json(createResponse(true, "Rol creado exitosamente", { rol }, 201))
+            const rol = await Rol.create({ nombre, descripcion })
+            return res.status(201).json(createResponse(true, "Rol creado exitosamente", { rol }, 201))
         } catch (error) {
             console.error("Error al crear rol:", error)
             next(error)
         }
     },
-
 
     updateRol: async (req, res, next) => {
         try {
@@ -96,6 +104,7 @@ const rolController = {
             }
 
             const rol = await Rol.findByPk(id)
+
             if (!rol) {
                 return res.status(404).json(createResponse(false, `Rol con ID ${id} no encontrado`, null, 404))
             }
@@ -107,21 +116,15 @@ const rolController = {
             }
 
             if (nombre !== rol.nombre) {
-                const rolExistente = await Rol.findOne({
-                    where: { nombre },
-                })
+                const rolExistente = await Rol.findOne({ where: { nombre } })
 
                 if (rolExistente) {
                     return res.status(400).json(createResponse(false, `Ya existe un rol con el nombre "${nombre}"`, null, 400))
                 }
             }
 
-            await rol.update({
-                nombre,
-                descripcion,
-            })
-
-            res.json(createResponse(true, "Rol actualizado exitosamente", { rol }))
+            await rol.update({ nombre, descripcion })
+            return res.json(createResponse(true, "Rol actualizado exitosamente", { rol }))
         } catch (error) {
             console.error(`Error al actualizar rol con ID ${req.params.id}:`, error)
             next(error)
@@ -140,6 +143,7 @@ const rolController = {
             }
 
             const rol = await Rol.findByPk(id)
+
             if (!rol) {
                 await transaction.rollback()
                 return res.status(404).json(createResponse(false, `Rol con ID ${id} no encontrado`, null, 404))
@@ -150,9 +154,7 @@ const rolController = {
                 return res.status(403).json(createResponse(false, "No se puede eliminar el rol de Administrador", null, 403))
             }
 
-            const usuariosConRol = await sequelize.models.Usuario.count({
-                where: { id_rol: id },
-            })
+            const usuariosConRol = await sequelize.models.Usuario.count({ where: { id_rol: id } })
 
             if (usuariosConRol > 0) {
                 await transaction.rollback()
@@ -168,23 +170,17 @@ const rolController = {
                     )
             }
 
-            await PermisoRol.destroy({
-                where: { id_rol: id },
-                transaction,
-            })
-
+            await rol.setPermisos([], { transaction })
             await rol.destroy({ transaction })
-
             await transaction.commit()
 
-            res.json(createResponse(true, "Rol eliminado exitosamente"))
+            return res.json(createResponse(true, "Rol eliminado exitosamente"))
         } catch (error) {
             await transaction.rollback()
             console.error(`Error al eliminar rol con ID ${req.params.id}:`, error)
             next(error)
         }
     },
-
 
     addPermisosToRol: async (req, res, next) => {
         const transaction = await sequelize.transaction()
@@ -200,29 +196,13 @@ const rolController = {
             }
 
             const rol = await Rol.findByPk(id_rol)
+
             if (!rol) {
                 await transaction.rollback()
                 return res.status(404).json(createResponse(false, `Rol con ID ${id_rol} no encontrado`, null, 404))
             }
 
-            const permisosExistentes = await Permiso.findAll({
-                where: {
-                    id_permiso: permisos,
-                },
-            })
-
-            if (permisosExistentes.length !== permisos.length) {
-                await transaction.rollback()
-                return res.status(400).json(createResponse(false, "Algunos permisos no existen en el sistema", null, 400))
-            }
-
-            const permisosActuales = await PermisoRol.findAll({
-                where: {
-                    id_rol,
-                },
-                attributes: ["id_permiso"],
-            })
-
+            const permisosActuales = await rol.getPermisos()
             const permisosActualesIds = permisosActuales.map((p) => p.id_permiso)
 
             const nuevosPermisos = permisos.filter((id) => !permisosActualesIds.includes(id))
@@ -232,25 +212,19 @@ const rolController = {
                 return res.status(200).json(createResponse(true, "Todos los permisos ya estaban asignados al rol", null))
             }
 
-            const permisosRol = nuevosPermisos.map((id_permiso) => ({
-                id_rol,
-                id_permiso,
-            }))
-
-            await PermisoRol.bulkCreate(permisosRol, { transaction })
-
+            await rol.addPermisos(nuevosPermisos, { transaction })
             await transaction.commit()
 
             const rolActualizado = await Rol.findByPk(id_rol, {
-                include: [
-                    {
-                        model: Permiso,
-                        through: { attributes: [] },
-                    },
-                ],
+                include: {
+                    model: Permiso,
+                    through: { attributes: [] },
+                },
             })
 
-            res.json(createResponse(true, `Permisos agregados exitosamente al rol ${rol.nombre}`, { rol: rolActualizado }))
+            return res.json(
+                createResponse(true, `Permisos agregados exitosamente al rol ${rol.nombre}`, { rol: rolActualizado }),
+            )
         } catch (error) {
             await transaction.rollback()
             console.error("Error al agregar permisos a rol:", error)
@@ -272,15 +246,14 @@ const rolController = {
             }
 
             const rol = await Rol.findByPk(id_rol)
+
             if (!rol) {
                 await transaction.rollback()
                 return res.status(404).json(createResponse(false, `Rol con ID ${id_rol} no encontrado`, null, 404))
             }
 
             if (rol.nombre === ROLES.ADMIN) {
-                const permisosAdmin = await PermisoRol.findAll({
-                    where: { id_rol },
-                })
+                const permisosAdmin = await rol.getPermisos()
 
                 if (permisosAdmin.length <= permisos.length) {
                     await transaction.rollback()
@@ -290,26 +263,19 @@ const rolController = {
                 }
             }
 
-            await PermisoRol.destroy({
-                where: {
-                    id_rol,
-                    id_permiso: permisos,
-                },
-                transaction,
-            })
-
+            await rol.removePermisos(permisos, { transaction })
             await transaction.commit()
 
             const rolActualizado = await Rol.findByPk(id_rol, {
-                include: [
-                    {
-                        model: Permiso,
-                        through: { attributes: [] },
-                    },
-                ],
+                include: {
+                    model: Permiso,
+                    through: { attributes: [] },
+                },
             })
 
-            res.json(createResponse(true, `Permisos eliminados exitosamente del rol ${rol.nombre}`, { rol: rolActualizado }))
+            return res.json(
+                createResponse(true, `Permisos eliminados exitosamente del rol ${rol.nombre}`, { rol: rolActualizado }),
+            )
         } catch (error) {
             await transaction.rollback()
             console.error("Error al eliminar permisos de rol:", error)

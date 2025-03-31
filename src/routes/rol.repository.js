@@ -14,7 +14,7 @@ class RolRepository {
             rolController.getAllRoles(req, res, next)
         })
 
-        this.router.get("/:id", [auth, isAdmin], (req, res, next) => {
+        this.router.get("/:id", auth, (req, res, next) => {
             rolController.getRolById(req, res, next)
         })
 
@@ -45,4 +45,3 @@ class RolRepository {
 }
 
 module.exports = new RolRepository()
-
