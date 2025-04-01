@@ -21,7 +21,7 @@ jobs:
           username: ${{ secrets.FTP_USER }}
           password: ${{ secrets.FTP_PASS }}
           local-dir: ./
-          server-dir: /home/grupolasirena0/www/Sgrh-App/Backend/
+          server-dir: /www/Sgrh-App/Backend/
           exclude: |
             **/.git*
             **/.github*
