@@ -3,7 +3,7 @@ const authRepository = require('./auth.repository');
 const userRepository = require('./user.repository');
 const permisoRepository = require('./permiso.repository');
 const rolRepository = require('./rol.repository');
-
+const empleadosRepository = require('./empleado.repository');
 
 class ApiRouter {
     constructor() {
@@ -16,6 +16,7 @@ class ApiRouter {
         this.router.use("/users", userRepository.getRoutes());
         this.router.use("/permisos", permisoRepository.getRoutes());
         this.router.use("/rol", rolRepository.getRoutes());
+        this.router.use("/empleados", empleadosRepository.getRoutes());
 
         this.router.get('/', (req, res) => {
             res.json({

@@ -83,7 +83,6 @@ const empleadoController = {
         try {
             const { id } = req.params
 
-            // Validate ID
             if (!id || isNaN(Number.parseInt(id, 10))) {
                 return res.status(400).json(createResponse(false, "ID de empleado inválido", null, 400))
             }
