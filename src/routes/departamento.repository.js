@@ -1,38 +1,33 @@
 const express = require("express")
-const empleadosController = require("../controllers/empleadoController")
+const departamentoController = require("../controllers/departamentoController")
 const auth = require("../middlewares/auth")
 const { isAdmin } = require("../middlewares/roleMiddleware")
 
-class PermisoRepository {
+class DepartamentoRouter {
     constructor() {
         this.router = express.Router()
         this.setupRoutes()
     }
 
     setupRoutes() {
-
         this.router.get("/", auth, (req, res, next) => {
-            empleadosController.getAll(req, res, next)
+            departamentoController.getAll(req, res, next)
         })
 
         this.router.get("/:id", auth, (req, res, next) => {
-            empleadosController.getById(req, res, next)
+            departamentoController.getById(req, res, next)
         })
 
         this.router.post("/add", auth, (req, res, next) => {
-            empleadosController.create(req, res, next)
+            departamentoController.create(req, res, next)
         })
 
         this.router.put("/:id", auth, (req, res, next) => {
-            empleadosController.update(req, res, next)
+            departamentoController.update(req, res, next)
         })
 
         this.router.delete("/:id", auth, (req, res, next) => {
-            empleadosController.delete(req, res, next)
-        })
-
-        this.router.patch("/:id", auth, (req, res, next) => {
-            empleadosController.changeStatus(req, res, next)
+            departamentoController.delete(req, res, next)
         })
 
 
@@ -43,5 +38,4 @@ class PermisoRepository {
     }
 }
 
-module.exports = new PermisoRepository()
-
+module.exports = new DepartamentoRouter()

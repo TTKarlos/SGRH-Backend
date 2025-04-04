@@ -4,6 +4,7 @@ const auth = require("../middlewares/auth")
 const validateRequest = require("../middlewares/validateRequest")
 const { usuarioSchema } = require("../validations/userSchema")
 const {isAdmin} = require("../middlewares/roleMiddleware");
+const empleadosController = require("../controllers/empleadoController");
 
 /**
  * User routes handler
@@ -33,6 +34,10 @@ run
 
         this.router.delete("/:id", [auth, isAdmin], (req, res, next) => {
             userController.delete(req, res, next)
+        })
+
+        this.router.patch("/:id", [auth, isAdmin], (req, res, next) => {
+            userController.changeStatus(req, res, next)
         })
     }
 
