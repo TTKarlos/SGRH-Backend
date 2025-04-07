@@ -1,41 +1,29 @@
 const express = require("express")
-const empleadosController = require("../controllers/empleadoController")
+const empleadoController = require("../controllers/empleadoController")
 const auth = require("../middlewares/auth")
 const { isAdmin } = require("../middlewares/roleMiddleware")
+const validateRequest = require("../utils/validateRequest")
+const { createEmpleadoSchema, updateEmpleadoSchema, changeStatusSchema } = require("../validations/empleadoSchema")
 
-class PermisoRepository {
+class EmpleadoRepository {
     constructor() {
         this.router = express.Router()
         this.setupRoutes()
     }
 
     setupRoutes() {
-
-        this.router.get("/", auth, (req, res, next) => {
-            empleadosController.getAll(req, res, next)
-        })
-
-        this.router.get("/:id", auth, (req, res, next) => {
-            empleadosController.getById(req, res, next)
-        })
-
-        this.router.post("/add", auth, (req, res, next) => {
-            empleadosController.create(req, res, next)
-        })
-
-        this.router.put("/:id", auth, (req, res, next) => {
-            empleadosController.update(req, res, next)
-        })
-
-        this.router.delete("/:id", auth, (req, res, next) => {
-            empleadosController.delete(req, res, next)
-        })
-
-        this.router.patch("/:id", auth, (req, res, next) => {
-            empleadosController.changeStatus(req, res, next)
-        })
-
-
+        this.router.get("/", auth, empleadoController.getAll)
+        this.router.get("/:id", auth, empleadoController.getById)
+        this.router.post("/", auth, validateRequest(createEmpleadoSchema), empleadoController.create)
+        this.router.put("/:id", auth, validateRequest(updateEmpleadoSchema), empleadoController.update)
+        this.router.delete("/:id", auth, isAdmin, empleadoController.delete)
+        this.router.patch(
+            "/:id/status",
+            auth,
+            isAdmin,
+            validateRequest(changeStatusSchema),
+            empleadoController.changeStatus,
+        )
     }
 
     getRoutes() {
@@ -43,5 +31,5 @@ class PermisoRepository {
     }
 }
 
-module.exports = new PermisoRepository()
+module.exports = new EmpleadoRepository()
 

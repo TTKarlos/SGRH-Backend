@@ -1,288 +1,367 @@
-const Rol = require("../models/Rol")
-const Permiso = require("../models/Permiso")
-const sequelize = require("../models")
-const { createResponse } = require("../utils/responseHelpers")
-const { ROLES } = require("../utils/constants")
+const { Rol, Permiso, Usuario, Op } = require("../models")
+const AppError = require("../utils/AppError")
+const { createResponse, validateFields, asyncHandler } = require("../utils/responseHelpers")
+const { paginate } = require("../utils/pagination")
+const { buildSearchClause, buildUpdateObject, buildFilterClause } = require("../utils/queryBuilder")
 
 const rolController = {
-    getAllRoles: async (req, res, next) => {
-        try {
-            const includeOptions = {
-                include: {
+    getAll: asyncHandler(async (req, res) => {
+        const isAdmin = req.user && req.user.id_rol === 1
+
+        if (!isAdmin) {
+            const whereClause = buildFilterClause({ id_rol: req.user.id_rol })
+
+            const options = {
+                where: whereClause,
+                include: [
+                    {
+                        model: Permiso,
+                        attributes: ["id_permiso", "nombre", "tipo"],
+                        through: { attributes: [] },
+                    },
+                ],
+            }
+
+            const { data: roles, pagination } = await paginate(Rol, req, options)
+
+            return res.status(200).json(
+                createResponse(true, "Rol obtenido correctamente", {
+                    roles,
+                    pagination,
+                })
+            )
+        }
+
+        const search = req.query.search || ""
+        const order = req.query.order || "ASC"
+
+        const whereClause = search ? buildSearchClause(search, ["nombre", "descripcion"]) : {}
+
+        const options = {
+            where: whereClause,
+            order: [["nombre", order]],
+            include: [
+                {
                     model: Permiso,
+                    attributes: ["id_permiso", "nombre", "tipo"],
                     through: { attributes: [] },
                 },
-                order: [["nombre", "ASC"]],
-            }
-
-            let roles
-
-            if (req.user.id_rol === 1) {
-                roles = await Rol.findAll(includeOptions)
-            } else {
-                const userRole = await Rol.findByPk(req.user.id_rol, includeOptions)
-
-                if (!userRole) {
-                    return res.status(404).json(createResponse(false, "Rol no encontrado", null, 404))
-                }
-
-                roles = [userRole]
-            }
-
-            const message = req.user.id_rol === 1 ? "Roles con permisos obtenidos exitosamente" : "Rol obtenido exitosamente"
-
-            return res.json(createResponse(true, message, { roles }))
-        } catch (error) {
-            console.error("Error al obtener roles:", error)
-            next(error)
+            ],
         }
-    },
 
-    getRolById: async (req, res, next) => {
-        try {
-            const { id } = req.params
+        const { data: roles, pagination } = await paginate(Rol, req, options)
 
-            if (!id || isNaN(Number.parseInt(id, 10))) {
-                return res.status(400).json(createResponse(false, "ID de rol inválido", null, 400))
-            }
+        return res.status(200).json(
+            createResponse(true, "Roles obtenidos correctamente", {
+                roles,
+                pagination,
+            })
+        )
+    }),
 
-            if (req.user.id_rol !== 1 && req.user.id_rol !== Number.parseInt(id, 10)) {
-                return res.status(403).json(createResponse(false, "No tiene permiso para acceder a este rol", null, 403))
-            }
+    getById: asyncHandler(async (req, res) => {
+        const { id } = req.params
+        const isAdmin = req.user && req.user.id_rol === 1
 
-            const rol = await Rol.findByPk(id, {
-                include: {
+        if (!id || isNaN(Number.parseInt(id, 10))) {
+            throw new AppError("ID de rol inválido", 400)
+        }
+
+        if (!isAdmin && req.user.id_rol !== Number.parseInt(id, 10)) {
+            throw new AppError("No tiene permisos para ver este rol", 403)
+        }
+
+        const whereClause = buildFilterClause({ id_rol: id })
+
+        const rol = await Rol.findOne({
+            where: whereClause,
+            include: [
+                {
                     model: Permiso,
+                    attributes: ["id_permiso", "nombre", "tipo", "descripcion"],
                     through: { attributes: [] },
+                },
+            ],
+        })
+
+        if (!rol) {
+            throw new AppError(`Rol con ID ${id} no encontrado`, 404)
+        }
+
+        let estadisticas = null
+        if (isAdmin) {
+            const usuariosCount = await Usuario.count({
+                where: { id_rol: id },
+            })
+
+            estadisticas = {
+                usuarios: usuariosCount,
+                permisos: rol.Permisos ? rol.Permisos.length : 0,
+            }
+        }
+
+        return res.status(200).json(
+            createResponse(true, "Rol obtenido correctamente", {
+                rol,
+                estadisticas,
+            })
+        )
+    }),
+
+    create: asyncHandler(async (req, res) => {
+        if (req.user.id_rol !== 1) {
+            throw new AppError("No tiene permisos para crear roles", 403)
+        }
+
+        const { nombre, descripcion, permisos } = req.body
+
+        validateFields(["nombre"], req.body)
+
+        const whereClause = buildFilterClause({ nombre })
+
+        const rolExistente = await Rol.findOne({
+            where: whereClause,
+        })
+
+        if (rolExistente) {
+            throw new AppError("Ya existe un rol con este nombre", 400)
+        }
+
+        const nuevoRol = await Rol.create({
+            nombre,
+            descripcion,
+        })
+
+        if (permisos && Array.isArray(permisos) && permisos.length > 0) {
+            const permisosExistentes = await Permiso.findAll({
+                where: {
+                    id_permiso: {
+                        [Op.in]: permisos,
+                    },
                 },
             })
 
-            if (!rol) {
-                return res.status(404).json(createResponse(false, `Rol con ID ${id} no encontrado`, null, 404))
+            if (permisosExistentes.length !== permisos.length) {
+                throw new AppError("Algunos permisos especificados no existen", 400)
             }
 
-            return res.json(createResponse(true, "Rol con permisos obtenido exitosamente", { rol }))
-        } catch (error) {
-            console.error(`Error al obtener rol con ID ${req.params.id}:`, error)
-            next(error)
+            await nuevoRol.setPermisos(permisos)
         }
-    },
 
-    createRol: async (req, res, next) => {
-        try {
-            const { nombre, descripcion } = req.body
+        const rolConPermisos = await Rol.findByPk(nuevoRol.id_rol, {
+            include: [
+                {
+                    model: Permiso,
+                    attributes: ["id_permiso", "nombre", "tipo"],
+                    through: { attributes: [] },
+                },
+            ],
+        })
 
-            if (!nombre) {
-                return res.status(400).json(createResponse(false, "El nombre del rol es requerido", null, 400))
-            }
+        return res.status(201).json(createResponse(true, "Rol creado correctamente", { rol: rolConPermisos }, 201))
+    }),
 
-            const rolExistente = await Rol.findOne({ where: { nombre } })
+    update: asyncHandler(async (req, res) => {
+        if (req.user.id_rol !== 1) {
+            throw new AppError("No tiene permisos para actualizar roles", 403)
+        }
+
+        const { id } = req.params
+        const { nombre, descripcion, permisos } = req.body
+
+        if (!id || isNaN(Number.parseInt(id, 10))) {
+            throw new AppError("ID de rol inválido", 400)
+        }
+
+        const whereClause = buildFilterClause({ id_rol: id })
+
+        const rol = await Rol.findOne({
+            where: whereClause,
+        })
+
+        if (!rol) {
+            throw new AppError(`Rol con ID ${id} no encontrado`, 404)
+        }
+
+        if (nombre && nombre !== rol.nombre) {
+            const rolExistente = await Rol.findOne({
+                where: {
+                    nombre,
+                    id_rol: { [Op.ne]: id },
+                },
+            })
 
             if (rolExistente) {
-                return res.status(400).json(createResponse(false, `Ya existe un rol con el nombre "${nombre}"`, null, 400))
+                throw new AppError("Ya existe otro rol con este nombre", 400)
             }
-
-            const rol = await Rol.create({ nombre, descripcion })
-            return res.status(201).json(createResponse(true, "Rol creado exitosamente", { rol }, 201))
-        } catch (error) {
-            console.error("Error al crear rol:", error)
-            next(error)
         }
-    },
 
-    updateRol: async (req, res, next) => {
-        try {
-            const { id } = req.params
-            const { nombre, descripcion } = req.body
+        const updateData = buildUpdateObject(req.body, ["nombre", "descripcion"])
 
-            if (!id || isNaN(Number.parseInt(id, 10))) {
-                return res.status(400).json(createResponse(false, "ID de rol inválido", null, 400))
-            }
+        await rol.update(updateData)
 
-            if (!nombre) {
-                return res.status(400).json(createResponse(false, "El nombre del rol es requerido", null, 400))
-            }
+        if (permisos && Array.isArray(permisos)) {
+            if (permisos.length > 0) {
+                const permisosExistentes = await Permiso.findAll({
+                    where: {
+                        id_permiso: {
+                            [Op.in]: permisos,
+                        },
+                    },
+                })
 
-            const rol = await Rol.findByPk(id)
-
-            if (!rol) {
-                return res.status(404).json(createResponse(false, `Rol con ID ${id} no encontrado`, null, 404))
-            }
-
-            if (rol.nombre === ROLES.ADMIN && nombre !== ROLES.ADMIN) {
-                return res
-                    .status(403)
-                    .json(createResponse(false, "No se puede cambiar el nombre del rol de Administrador", null, 403))
-            }
-
-            if (nombre !== rol.nombre) {
-                const rolExistente = await Rol.findOne({ where: { nombre } })
-
-                if (rolExistente) {
-                    return res.status(400).json(createResponse(false, `Ya existe un rol con el nombre "${nombre}"`, null, 400))
+                if (permisosExistentes.length !== permisos.length) {
+                    throw new AppError("Algunos permisos especificados no existen", 400)
                 }
             }
 
-            await rol.update({ nombre, descripcion })
-            return res.json(createResponse(true, "Rol actualizado exitosamente", { rol }))
-        } catch (error) {
-            console.error(`Error al actualizar rol con ID ${req.params.id}:`, error)
-            next(error)
+            await rol.setPermisos(permisos)
         }
-    },
 
-    deleteRol: async (req, res, next) => {
-        const transaction = await sequelize.transaction()
-
-        try {
-            const { id } = req.params
-
-            if (!id || isNaN(Number.parseInt(id, 10))) {
-                await transaction.rollback()
-                return res.status(400).json(createResponse(false, "ID de rol inválido", null, 400))
-            }
-
-            const rol = await Rol.findByPk(id)
-
-            if (!rol) {
-                await transaction.rollback()
-                return res.status(404).json(createResponse(false, `Rol con ID ${id} no encontrado`, null, 404))
-            }
-
-            if (rol.nombre === ROLES.ADMIN) {
-                await transaction.rollback()
-                return res.status(403).json(createResponse(false, "No se puede eliminar el rol de Administrador", null, 403))
-            }
-
-            const usuariosConRol = await sequelize.models.Usuario.count({ where: { id_rol: id } })
-
-            if (usuariosConRol > 0) {
-                await transaction.rollback()
-                return res
-                    .status(400)
-                    .json(
-                        createResponse(
-                            false,
-                            `No se puede eliminar el rol porque está asignado a ${usuariosConRol} usuario(s)`,
-                            null,
-                            400,
-                        ),
-                    )
-            }
-
-            await rol.setPermisos([], { transaction })
-            await rol.destroy({ transaction })
-            await transaction.commit()
-
-            return res.json(createResponse(true, "Rol eliminado exitosamente"))
-        } catch (error) {
-            await transaction.rollback()
-            console.error(`Error al eliminar rol con ID ${req.params.id}:`, error)
-            next(error)
-        }
-    },
-
-    addPermisosToRol: async (req, res, next) => {
-        const transaction = await sequelize.transaction()
-
-        try {
-            const { id_rol, permisos } = req.body
-
-            if (!id_rol || !permisos || !Array.isArray(permisos) || permisos.length === 0) {
-                await transaction.rollback()
-                return res
-                    .status(400)
-                    .json(createResponse(false, "Se requiere un ID de rol y un array de IDs de permisos", null, 400))
-            }
-
-            const rol = await Rol.findByPk(id_rol)
-
-            if (!rol) {
-                await transaction.rollback()
-                return res.status(404).json(createResponse(false, `Rol con ID ${id_rol} no encontrado`, null, 404))
-            }
-
-            const permisosActuales = await rol.getPermisos()
-            const permisosActualesIds = permisosActuales.map((p) => p.id_permiso)
-
-            const nuevosPermisos = permisos.filter((id) => !permisosActualesIds.includes(id))
-
-            if (nuevosPermisos.length === 0) {
-                await transaction.rollback()
-                return res.status(200).json(createResponse(true, "Todos los permisos ya estaban asignados al rol", null))
-            }
-
-            await rol.addPermisos(nuevosPermisos, { transaction })
-            await transaction.commit()
-
-            const rolActualizado = await Rol.findByPk(id_rol, {
-                include: {
+        const rolActualizado = await Rol.findByPk(id, {
+            include: [
+                {
                     model: Permiso,
+                    attributes: ["id_permiso", "nombre", "tipo"],
                     through: { attributes: [] },
+                },
+            ],
+        })
+
+        return res.status(200).json(createResponse(true, "Rol actualizado correctamente", { rol: rolActualizado }))
+    }),
+
+    delete: asyncHandler(async (req, res) => {
+        if (req.user.id_rol !== 1) {
+            throw new AppError("No tiene permisos para eliminar roles", 403)
+        }
+
+        const { id } = req.params
+
+        if (!id || isNaN(Number.parseInt(id, 10))) {
+            throw new AppError("ID de rol inválido", 400)
+        }
+
+        if (id === "1") {
+            throw new AppError("No se puede eliminar el rol de administrador", 400)
+        }
+
+        const whereClause = buildFilterClause({ id_rol: id })
+
+        const rol = await Rol.findOne({
+            where: whereClause,
+        })
+
+        if (!rol) {
+            throw new AppError(`Rol con ID ${id} no encontrado`, 404)
+        }
+
+        const usuariosWhereClause = buildFilterClause({ id_rol: id })
+
+        const usuariosAsociados = await Usuario.count({
+            where: usuariosWhereClause,
+        })
+
+        if (usuariosAsociados > 0) {
+            throw new AppError("No se puede eliminar el rol porque tiene usuarios asociados", 400)
+        }
+
+        await rol.destroy()
+
+        return res.status(200).json(createResponse(true, "Rol eliminado correctamente"))
+    }),
+
+    updatePermisos: asyncHandler(async (req, res) => {
+        if (req.user.id_rol !== 1) {
+            throw new AppError("No tiene permisos para modificar permisos de roles", 403)
+        }
+
+        const { id } = req.params
+        const { permisos } = req.body
+
+        if (!id || isNaN(Number.parseInt(id, 10))) {
+            throw new AppError("ID de rol inválido", 400)
+        }
+
+        if (!permisos || !Array.isArray(permisos)) {
+            throw new AppError("Se requiere un array de permisos", 400)
+        }
+
+        const whereClause = buildFilterClause({ id_rol: id })
+
+        const rol = await Rol.findOne({
+            where: whereClause,
+        })
+
+        if (!rol) {
+            throw new AppError(`Rol con ID ${id} no encontrado`, 404)
+        }
+
+        if (id === "1") {
+            throw new AppError("No se pueden modificar los permisos del rol de administrador", 400)
+        }
+
+        if (permisos.length > 0) {
+            const permisosExistentes = await Permiso.findAll({
+                where: {
+                    id_permiso: {
+                        [Op.in]: permisos,
+                    },
                 },
             })
 
-            return res.json(
-                createResponse(true, `Permisos agregados exitosamente al rol ${rol.nombre}`, { rol: rolActualizado }),
-            )
-        } catch (error) {
-            await transaction.rollback()
-            console.error("Error al agregar permisos a rol:", error)
-            next(error)
+            if (permisosExistentes.length !== permisos.length) {
+                throw new AppError("Algunos permisos especificados no existen", 400)
+            }
         }
-    },
 
-    removePermisosFromRol: async (req, res, next) => {
-        const transaction = await sequelize.transaction()
+        await rol.setPermisos(permisos)
 
-        try {
-            const { id_rol, permisos } = req.body
-
-            if (!id_rol || !permisos || !Array.isArray(permisos) || permisos.length === 0) {
-                await transaction.rollback()
-                return res
-                    .status(400)
-                    .json(createResponse(false, "Se requiere un ID de rol y un array de IDs de permisos", null, 400))
-            }
-
-            const rol = await Rol.findByPk(id_rol)
-
-            if (!rol) {
-                await transaction.rollback()
-                return res.status(404).json(createResponse(false, `Rol con ID ${id_rol} no encontrado`, null, 404))
-            }
-
-            if (rol.nombre === ROLES.ADMIN) {
-                const permisosAdmin = await rol.getPermisos()
-
-                if (permisosAdmin.length <= permisos.length) {
-                    await transaction.rollback()
-                    return res
-                        .status(403)
-                        .json(createResponse(false, "No se pueden eliminar todos los permisos del rol de Administrador", null, 403))
-                }
-            }
-
-            await rol.removePermisos(permisos, { transaction })
-            await transaction.commit()
-
-            const rolActualizado = await Rol.findByPk(id_rol, {
-                include: {
+        const rolActualizado = await Rol.findByPk(id, {
+            include: [
+                {
                     model: Permiso,
+                    attributes: ["id_permiso", "nombre", "tipo"],
                     through: { attributes: [] },
                 },
-            })
+            ],
+        })
 
-            return res.json(
-                createResponse(true, `Permisos eliminados exitosamente del rol ${rol.nombre}`, { rol: rolActualizado }),
-            )
-        } catch (error) {
-            await transaction.rollback()
-            console.error("Error al eliminar permisos de rol:", error)
-            next(error)
+        return res
+            .status(200)
+            .json(createResponse(true, "Permisos del rol actualizados correctamente", { rol: rolActualizado }))
+    }),
+
+    getMiRol: asyncHandler(async (req, res) => {
+        const idRol = req.user.id_rol
+
+        const whereClause = buildFilterClause({ id_rol: idRol })
+
+        const options = {
+            where: whereClause,
+            include: [
+                {
+                    model: Permiso,
+                    attributes: ["id_permiso", "nombre", "tipo", "descripcion"],
+                    through: { attributes: [] },
+                },
+            ],
         }
-    },
+
+        const { data: roles } = await paginate(Rol, req, options)
+
+        if (!roles || roles.length === 0) {
+            throw new AppError("No se encontró el rol del usuario", 404)
+        }
+
+        return res.status(200).json(
+            createResponse(true, "Rol del usuario obtenido correctamente", {
+                rol: roles[0]
+            })
+        )
+    }),
+
+
 }
 
 module.exports = rolController
-

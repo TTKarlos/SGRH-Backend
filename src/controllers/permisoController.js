@@ -1,44 +1,45 @@
 const { Permiso } = require("../models")
-const { createResponse } = require("../utils/responseHelpers")
+const AppError = require("../utils/AppError")
+const { createResponse, asyncHandler } = require("../utils/responseHelpers")
+const { buildSearchClause } = require("../utils/queryBuilder")
+
 
 const permisoController = {
+    getAllPermisos: asyncHandler(async (req, res) => {
+        const search = req.query.search || ""
+        const order = req.query.order || "ASC"
 
-    getAllPermisos: async (req, res, next) => {
-        try {
-            const permisos = await Permiso.findAll({
-                order: [
-                    ["nombre", "ASC"],
-                    ["tipo", "ASC"],
-                ],
-            })
+        const whereClause = search ? buildSearchClause(search, ["nombre", "tipo", "descripcion"]) : {}
 
-            res.json(createResponse(true, "Permisos obtenidos exitosamente", { permisos }))
-        } catch (error) {
-            console.error("Error al obtener permisos:", error)
-            next(error)
+        const permisos = await Permiso.findAll({
+            where: whereClause,
+            order: [
+                ["nombre", order],
+                ["tipo", "ASC"],
+            ],
+        })
+
+        return res.status(200).json(createResponse(true, "Permisos obtenidos exitosamente", { permisos }))
+    }),
+
+    getPermisoById: asyncHandler(async (req, res) => {
+        const { id } = req.params
+
+        if (!id || isNaN(Number.parseInt(id, 10))) {
+            throw new AppError("ID de permiso inválido", 400)
         }
-    },
 
-    getPermisoById: async (req, res, next) => {
-        try {
-            const { id } = req.params
+        const permiso = await Permiso.findByPk(id)
 
-            if (!id || isNaN(Number.parseInt(id, 10))) {
-                return res.status(400).json(createResponse(false, "ID de permiso inválido", null, 400))
-            }
-
-            const permiso = await Permiso.findByPk(id)
-
-            if (!permiso) {
-                return res.status(404).json(createResponse(false, `Permiso con ID ${id} no encontrado`, null, 404))
-            }
-
-            res.json(createResponse(true, "Permiso obtenido exitosamente", { permiso }))
-        } catch (error) {
-            console.error(`Error al obtener permiso con ID ${req.params.id}:`, error)
-            next(error)
+        if (!permiso) {
+            throw new AppError(`Permiso con ID ${id} no encontrado`, 404)
         }
-    },
+
+        return res.status(200).json(createResponse(true, "Permiso obtenido exitosamente", { permiso }))
+    }),
+
+
+
 }
 
 module.exports = permisoController

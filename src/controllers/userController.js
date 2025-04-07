@@ -1,269 +1,271 @@
-// Fix the import to include Op from Sequelize
-const { Usuario, Rol, sequelize, Op } = require("../models")
-const { createResponse, validateFields } = require("../utils/responseHelpers")
-const { ROLES } = require("../utils/constants")
+const { Usuario, Rol, Permiso, Op } = require("../models")
+const AppError = require("../utils/AppError")
+const { createResponse, validateFields, asyncHandler } = require("../utils/responseHelpers")
+const { paginate } = require("../utils/pagination")
+const { buildSearchClause, buildUpdateObject } = require("../utils/queryBuilder")
 
 const userController = {
-    getAll: async (req, res, next) => {
-        try {
-            const page = Number.parseInt(req.query.page, 10) || 1
-            const limit = Number.parseInt(req.query.limit, 10) || 10
-            const offset = (page - 1) * limit
+    getAll: asyncHandler(async (req, res) => {
+        const search = req.query.search || ""
+        const activo = req.query.activo !== undefined ? req.query.activo === "true" : null
+        const id_rol = req.query.id_rol || null
+        const order = req.query.order || "ASC"
+        const orderBy = req.query.orderBy || "nombre_usuario"
 
-            const filter = {}
-            if (req.query.activo !== undefined) {
-                filter.activo = req.query.activo === "true"
-            }
+        let whereClause = {}
 
-            if (req.query.id_rol) {
-                filter.id_rol = req.query.id_rol
-            }
-
-            if (req.query.search) {
-                filter[Op.or] = [
-                    { nombre_usuario: { [Op.like]: `%${req.query.search}%` } },
-                    { email: { [Op.like]: `%${req.query.search}%` } },
-                    { nombre: { [Op.like]: `%${req.query.search}%` } },
-                    { apellidos: { [Op.like]: `%${req.query.search}%` } },
-                ]
-            }
-
-            const { count, rows: users } = await Usuario.findAndCountAll({
-                where: filter,
-                limit,
-                offset,
-                include: [{ model: Rol, attributes: ["id_rol", "nombre", "descripcion"] }],
-                order: [["id_usuario", "ASC"]],
-            })
-
-            const totalPages = Math.ceil(count / limit)
-
-            res.status(200).json(
-                createResponse(true, "Usuarios encontrados exitosamente", {
-                    users,
-                    pagination: {
-                        total: count,
-                        page,
-                        limit,
-                        totalPages,
-                        hasMore: page < totalPages,
-                    },
-                }),
-            )
-        } catch (error) {
-            console.error("Error al obtener usuarios:", error)
-            next(error)
+        if (search) {
+            whereClause = buildSearchClause(search, ["nombre_usuario", "email", "nombre", "apellidos"])
         }
-    },
 
-    getById: async (req, res, next) => {
-        try {
-            const { id } = req.params
-
-            if (!id || isNaN(Number.parseInt(id, 10))) {
-                return res.status(400).json(createResponse(false, "ID de usuario inválido", null, 400))
-            }
-
-            const user = await Usuario.findByPk(id, {
-                include: [{ model: Rol, attributes: ["id_rol", "nombre", "descripcion"] }],
-            })
-
-            if (!user) {
-                return res.status(404).json(createResponse(false, `Usuario con ID ${id} no encontrado`, null, 404))
-            }
-
-            res.status(200).json(createResponse(true, "Usuario encontrado exitosamente", { user }))
-        } catch (error) {
-            console.error(`Error al obtener usuario con ID ${req.params.id}:`, error)
-            next(error)
+        if (activo !== null) {
+            whereClause.activo = activo
         }
-    },
 
-    create: async (req, res, next) => {
-        try {
-            const { nombre_usuario, email, password_hash, nombre, apellidos, id_rol } = req.body
+        if (id_rol) {
+            whereClause.id_rol = id_rol
+        }
 
-            try {
-                validateFields(["nombre_usuario", "email", "password_hash", "nombre", "apellidos"], req.body)
-            } catch (error) {
-                return res.status(400).json(createResponse(false, error.message, null, 400))
-            }
+        const options = {
+            where: whereClause,
+            order: [[orderBy, order]],
+            include: [
+                {
+                    model: Rol,
+                    attributes: ["id_rol", "nombre"],
+                },
+            ],
+            attributes: { exclude: ["password_hash", "token"] },
+        }
 
-            const existingUser = await Usuario.findOne({
+        const { data: usuarios, pagination } = await paginate(Usuario, req, options)
+
+        return res.status(200).json(
+            createResponse(true, "Usuarios obtenidos correctamente", {
+                usuarios,
+                pagination,
+            }),
+        )
+    }),
+
+    getById: asyncHandler(async (req, res) => {
+        const { id } = req.params
+
+        if (!id || isNaN(Number.parseInt(id, 10))) {
+            throw new AppError("ID de usuario inválido", 400)
+        }
+
+        const usuario = await Usuario.findByPk(id, {
+            include: [
+                {
+                    model: Rol,
+                    include: [
+                        {
+                            model: Permiso,
+                            through: { attributes: [] },
+                        },
+                    ],
+                },
+            ],
+            attributes: { exclude: ["password_hash", "token"] },
+        })
+
+        if (!usuario) {
+            throw new AppError(`Usuario con ID ${id} no encontrado`, 404)
+        }
+
+        return res.status(200).json(createResponse(true, "Usuario obtenido correctamente", { usuario }))
+    }),
+
+    create: asyncHandler(async (req, res) => {
+        const { nombre_usuario, email, password_hash, nombre, apellidos, id_rol, activo } = req.body
+
+        validateFields(["nombre_usuario", "email", "password_hash", "nombre", "apellidos", "id_rol"], req.body)
+
+        const usuarioExistente = await Usuario.findOne({
+            where: {
+                [Op.or]: [{ nombre_usuario }, { email }],
+            },
+        })
+
+        if (usuarioExistente) {
+            throw new AppError("Ya existe un usuario con este nombre de usuario o email", 400)
+        }
+
+        const rolExiste = await Rol.findByPk(id_rol)
+        if (!rolExiste) {
+            throw new AppError("El rol especificado no existe", 404)
+        }
+
+        const nuevoUsuario = await Usuario.create({
+            nombre_usuario,
+            email,
+            password_hash,
+            nombre,
+            apellidos,
+            id_rol,
+            activo: activo !== undefined ? activo : true,
+        })
+
+        const usuarioConRol = await Usuario.findByPk(nuevoUsuario.id_usuario, {
+            include: [
+                {
+                    model: Rol,
+                    attributes: ["id_rol", "nombre"],
+                },
+            ],
+            attributes: { exclude: ["password_hash", "token"] },
+        })
+
+        return res.status(201).json(createResponse(true, "Usuario creado correctamente", { usuario: usuarioConRol }, 201))
+    }),
+
+    update: asyncHandler(async (req, res) => {
+        const { id } = req.params
+        const { nombre_usuario, email, nombre, apellidos, id_rol, activo } = req.body
+
+        if (!id || isNaN(Number.parseInt(id, 10))) {
+            throw new AppError("ID de usuario inválido", 400)
+        }
+
+        const usuario = await Usuario.findByPk(id)
+
+        if (!usuario) {
+            throw new AppError(`Usuario con ID ${id} no encontrado`, 404)
+        }
+
+        if ((nombre_usuario && nombre_usuario !== usuario.nombre_usuario) || (email && email !== usuario.email)) {
+            const usuarioExistente = await Usuario.findOne({
                 where: {
-                    [Op.or]: [{ nombre_usuario }, { email }],
+                    [Op.or]: [{ nombre_usuario: nombre_usuario || "" }, { email: email || "" }],
+                    id_usuario: { [Op.ne]: id },
                 },
             })
 
-            if (existingUser) {
-                return res
-                    .status(400)
-                    .json(createResponse(false, "El usuario o el correo electrónico ya están registrados", null, 400))
+            if (usuarioExistente) {
+                throw new AppError("Ya existe otro usuario con este nombre de usuario o email", 400)
             }
-
-            const user = await Usuario.create({
-                nombre_usuario,
-                email,
-                password_hash,
-                nombre,
-                apellidos,
-                id_rol: id_rol || 4,
-                activo: true,
-            })
-
-            const createdUser = await Usuario.findByPk(user.id_usuario, {
-                include: [{ model: Rol, attributes: ["id_rol", "nombre", "descripcion"] }],
-            })
-
-            res.status(201).json(createResponse(true, "Usuario creado exitosamente", { user: createdUser }, 201))
-        } catch (error) {
-            console.error("Error al crear usuario:", error)
-            next(error)
         }
-    },
 
-    update: async (req, res, next) => {
-        try {
-            const { id } = req.params
-            const { nombre_usuario, email, password_hash, nombre, apellidos, id_rol, activo } = req.body
-
-            if (!id || isNaN(Number.parseInt(id, 10))) {
-                return res.status(400).json(createResponse(false, "ID de usuario inválido", null, 400))
+        if (id_rol && id_rol !== usuario.id_rol) {
+            const rolExiste = await Rol.findByPk(id_rol)
+            if (!rolExiste) {
+                throw new AppError("El rol especificado no existe", 404)
             }
-
-            const user = await Usuario.findByPk(id)
-            if (!user) {
-                return res.status(404).json(createResponse(false, `Usuario con ID ${id} no encontrado`, null, 404))
-            }
-
-            if (nombre_usuario || email) {
-                const existingUser = await Usuario.findOne({
-                    where: {
-                        [Op.or]: [nombre_usuario ? { nombre_usuario } : null, email ? { email } : null].filter(Boolean),
-                        id_usuario: { [Op.ne]: id },
-                    },
-                })
-
-                if (existingUser) {
-                    return res
-                        .status(400)
-                        .json(
-                            createResponse(
-                                false,
-                                "El nombre de usuario o el correo electrónico ya están registrados por otro usuario",
-                                null,
-                                400,
-                            ),
-                        )
-                }
-            }
-
-            const updateData = {}
-
-            if (nombre_usuario) updateData.nombre_usuario = nombre_usuario
-            if (email) updateData.email = email
-            if (nombre) updateData.nombre = nombre
-            if (apellidos) updateData.apellidos = apellidos
-            if (id_rol) updateData.id_rol = id_rol
-            if (activo !== undefined) updateData.activo = activo
-
-            if (password_hash) {
-                updateData.password_hash = password_hash
-            }
-
-            await user.update(updateData)
-
-            const updatedUser = await Usuario.findByPk(id, {
-                include: [{ model: Rol, attributes: ["id_rol", "nombre", "descripcion"] }],
-            })
-
-            res.status(200).json(createResponse(true, "Usuario actualizado exitosamente", { user: updatedUser }))
-        } catch (error) {
-            console.error(`Error al actualizar usuario con ID ${req.params.id}:`, error)
-            next(error)
         }
-    },
 
-    delete: async (req, res, next) => {
-        try {
-            const { id } = req.params
+        const updateData = buildUpdateObject(req.body, [
+            "nombre_usuario",
+            "email",
+            "nombre",
+            "apellidos",
+            "id_rol",
+            "activo",
+        ])
 
-            if (!id || isNaN(Number.parseInt(id, 10))) {
-                return res.status(400).json(createResponse(false, "ID de usuario inválido", null, 400))
-            }
+        await usuario.update(updateData)
 
-            const user = await Usuario.findByPk(id)
-            if (!user) {
-                return res.status(404).json(createResponse(false, `Usuario con ID ${id} no encontrado`, null, 404))
-            }
+        const usuarioActualizado = await Usuario.findByPk(id, {
+            include: [
+                {
+                    model: Rol,
+                    attributes: ["id_rol", "nombre"],
+                },
+            ],
+            attributes: { exclude: ["password_hash", "token"] },
+        })
 
-            if (user.id_rol === 1) {
-                const adminCount = await Usuario.count({
-                    where: {
-                        id_rol: 1,
-                        activo: true,
-                    },
-                })
+        return res
+            .status(200)
+            .json(createResponse(true, "Usuario actualizado correctamente", { usuario: usuarioActualizado }))
+    }),
 
-                if (adminCount <= 1) {
-                    return res
-                        .status(400)
-                        .json(createResponse(false, "No se puede eliminar el último administrador del sistema", null, 400))
-                }
-            }
+    delete: asyncHandler(async (req, res) => {
+        const { id } = req.params
 
-            await user.destroy()
-
-            res.status(200).json(createResponse(true, `Usuario con ID ${id} eliminado exitosamente`))
-        } catch (error) {
-            console.error(`Error al eliminar usuario con ID ${req.params.id}:`, error)
-            next(error)
+        if (!id || isNaN(Number.parseInt(id, 10))) {
+            throw new AppError("ID de usuario inválido", 400)
         }
-    },
 
-    changeStatus: async (req, res, next) => {
-        try {
-            const { id } = req.params
-            const { activo } = req.body
-
-            if (!id || isNaN(Number.parseInt(id, 10))) {
-                return res.status(400).json(createResponse(false, "ID de usuario inválido", null, 400))
-            }
-
-            if (activo === undefined) {
-                return res.status(400).json(createResponse(false, "El estado del usuario es requerido", null, 400))
-            }
-
-            const user = await Usuario.findByPk(id)
-            if (!user) {
-                return res.status(404).json(createResponse(false, `Usuario con ID ${id} no encontrado`, null, 404))
-            }
-
-            if (user.id_rol === 1 && !activo) {
-                const adminCount = await Usuario.count({
-                    where: {
-                        id_rol: 1,
-                        activo: true,
-                    },
-                })
-
-                if (adminCount <= 1) {
-                    return res
-                        .status(400)
-                        .json(createResponse(false, "No se puede desactivar el último administrador del sistema", null, 400))
-                }
-            }
-
-            await user.update({ activo })
-
-            res
-                .status(200)
-                .json(createResponse(true, `Usuario ${activo ? "activado" : "desactivado"} exitosamente`, { user }))
-        } catch (error) {
-            console.error(`Error al cambiar estado de usuario con ID ${req.params.id}:`, error)
-            next(error)
+        if (id === "1") {
+            throw new AppError("No se puede eliminar el usuario administrador", 400)
         }
-    },
+
+        const usuario = await Usuario.findByPk(id)
+
+        if (!usuario) {
+            throw new AppError(`Usuario con ID ${id} no encontrado`, 404)
+        }
+
+        await usuario.destroy()
+
+        return res.status(200).json(createResponse(true, "Usuario eliminado correctamente"))
+    }),
+
+    changeStatus: asyncHandler(async (req, res) => {
+        const { id } = req.params
+        const { activo } = req.body
+
+        if (!id || isNaN(Number.parseInt(id, 10))) {
+            throw new AppError("ID de usuario inválido", 400)
+        }
+
+        if (activo === undefined) {
+            throw new AppError("El estado (activo) es requerido", 400)
+        }
+
+        if (id === "1" && activo === false) {
+            throw new AppError("No se puede desactivar el usuario administrador", 400)
+        }
+
+        const usuario = await Usuario.findByPk(id)
+
+        if (!usuario) {
+            throw new AppError(`Usuario con ID ${id} no encontrado`, 404)
+        }
+
+        await usuario.update({ activo })
+
+        return res.status(200).json(
+            createResponse(true, `Usuario ${activo ? "activado" : "desactivado"} correctamente`, {
+                usuario: {
+                    id_usuario: usuario.id_usuario,
+                    nombre_usuario: usuario.nombre_usuario,
+                    nombre: usuario.nombre,
+                    apellidos: usuario.apellidos,
+                    activo: usuario.activo,
+                },
+            }),
+        )
+    }),
+
+    resetPassword: asyncHandler(async (req, res) => {
+        const { id } = req.params
+        const { newPassword } = req.body
+
+        if (!id || isNaN(Number.parseInt(id, 10))) {
+            throw new AppError("ID de usuario inválido", 400)
+        }
+
+        validateFields(["newPassword"], req.body)
+
+        if (newPassword.length < 6) {
+            throw new AppError("La nueva contraseña debe tener al menos 6 caracteres", 400)
+        }
+
+        const usuario = await Usuario.findByPk(id)
+
+        if (!usuario) {
+            throw new AppError(`Usuario con ID ${id} no encontrado`, 404)
+        }
+
+        usuario.password_hash = newPassword
+        await usuario.save()
+
+        return res.status(200).json(createResponse(true, "Contraseña restablecida correctamente"))
+    }),
+
+
 }
 
 module.exports = userController

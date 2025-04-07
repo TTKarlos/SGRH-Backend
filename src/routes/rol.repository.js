@@ -2,6 +2,8 @@ const express = require("express")
 const rolController = require("../controllers/rolController")
 const auth = require("../middlewares/auth")
 const { isAdmin } = require("../middlewares/roleMiddleware")
+const validateRequest = require("../utils/validateRequest")
+const { createRolSchema, updateRolSchema, updatePermisosSchema } = require("../validations/rolSchema")
 
 class RolRepository {
     constructor() {
@@ -10,33 +12,13 @@ class RolRepository {
     }
 
     setupRoutes() {
-        this.router.get("/", auth, (req, res, next) => {
-            rolController.getAllRoles(req, res, next)
-        })
-
-        this.router.get("/:id", auth, (req, res, next) => {
-            rolController.getRolById(req, res, next)
-        })
-
-        this.router.post("/", [auth, isAdmin], (req, res, next) => {
-            rolController.createRol(req, res, next)
-        })
-
-        this.router.put("/:id", [auth, isAdmin], (req, res, next) => {
-            rolController.updateRol(req, res, next)
-        })
-
-        this.router.delete("/:id", [auth, isAdmin], (req, res, next) => {
-            rolController.deleteRol(req, res, next)
-        })
-
-        this.router.post("/add", [auth, isAdmin], (req, res, next) => {
-            rolController.addPermisosToRol(req, res, next)
-        })
-
-        this.router.post("/remove", [auth, isAdmin], (req, res, next) => {
-            rolController.removePermisosFromRol(req, res, next)
-        })
+        this.router.get("/mi-rol", auth, rolController.getMiRol)
+        this.router.get("/", auth, rolController.getAll)
+        this.router.get("/:id", auth, rolController.getById)
+        this.router.post("/", auth, isAdmin, validateRequest(createRolSchema), rolController.create)
+        this.router.put("/:id", auth, isAdmin, validateRequest(updateRolSchema), rolController.update)
+        this.router.delete("/:id", auth, isAdmin, rolController.delete)
+        this.router.put("/:id/permisos", auth, isAdmin, validateRequest(updatePermisosSchema), rolController.updatePermisos)
     }
 
     getRoutes() {

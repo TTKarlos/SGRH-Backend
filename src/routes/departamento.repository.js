@@ -2,35 +2,27 @@ const express = require("express")
 const departamentoController = require("../controllers/departamentoController")
 const auth = require("../middlewares/auth")
 const { isAdmin } = require("../middlewares/roleMiddleware")
+const validateRequest = require("../utils/validateRequest")
+const {
+    createDepartamentoSchema,
+    updateDepartamentoSchema,
+    changeStatusSchema,
+} = require("../validations/departamentoSchema")
 
-class DepartamentoRouter {
+class DepartamentoRepository {
     constructor() {
         this.router = express.Router()
         this.setupRoutes()
     }
 
     setupRoutes() {
-        this.router.get("/", auth, (req, res, next) => {
-            departamentoController.getAll(req, res, next)
-        })
-
-        this.router.get("/:id", auth, (req, res, next) => {
-            departamentoController.getById(req, res, next)
-        })
-
-        this.router.post("/add", auth, (req, res, next) => {
-            departamentoController.create(req, res, next)
-        })
-
-        this.router.put("/:id", auth, (req, res, next) => {
-            departamentoController.update(req, res, next)
-        })
-
-        this.router.delete("/:id", auth, (req, res, next) => {
-            departamentoController.delete(req, res, next)
-        })
-
-
+        // Rutas para departamentos
+        this.router.get("/", auth, departamentoController.getAll)
+        this.router.get("/:id", auth, departamentoController.getById)
+        this.router.post("/", auth, isAdmin, validateRequest(createDepartamentoSchema), departamentoController.create)
+        this.router.put("/:id", auth, isAdmin, validateRequest(updateDepartamentoSchema), departamentoController.update)
+        this.router.delete("/:id", auth, isAdmin, departamentoController.delete)
+        this.router.patch("/:id", auth, isAdmin, validateRequest(changeStatusSchema), departamentoController.changeStatus)
     }
 
     getRoutes() {
@@ -38,4 +30,5 @@ class DepartamentoRouter {
     }
 }
 
-module.exports = new DepartamentoRouter()
+module.exports = new DepartamentoRepository()
+

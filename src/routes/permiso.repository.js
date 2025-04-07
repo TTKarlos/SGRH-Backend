@@ -10,15 +10,8 @@ class PermisoRepository {
     }
 
     setupRoutes() {
-
-        this.router.get("/", [auth, isAdmin], (req, res, next) => {
-            permisoController.getAllPermisos(req, res, next)
-        })
-
-
-        this.router.get("/:id", [auth, isAdmin], (req, res, next) => {
-            permisoController.getPermisoById(req, res, next)
-        })
+        this.router.get("/", auth, isAdmin, permisoController.getAllPermisos)
+        this.router.get("/:id", auth, isAdmin, permisoController.getPermisoById)
     }
 
     getRoutes() {

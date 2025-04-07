@@ -1,31 +1,39 @@
-const createResponse = (success, message, data = null, statusCode = 200) => ({
-    success,
-    message,
-    data,
-    statusCode,
-})
 
-const validateFields = (fields, data) => {
+const createResponse = (success, message, data = {}, statusCode = 200) => {
+    return {
+        success,
+        message,
+        data,
+        statusCode,
+    }
+}
+
+
+const validateFields = (requiredFields, data) => {
+    const AppError = require("./AppError")
     const missingFields = []
 
-    for (const field of fields) {
-        if (data[field] === undefined || data[field] === null || data[field] === "") {
+    for (const field of requiredFields) {
+        if (!data[field] || (typeof data[field] === "string" && data[field].trim() === "")) {
             missingFields.push(field)
         }
     }
 
     if (missingFields.length > 0) {
-        const AppError = require("./AppError")
-        throw new AppError(
-            `Los siguientes campos son requeridos: ${missingFields.join(", ")}`,
-            400,
-            missingFields.map((field) => ({ field, message: "Este campo es requerido" })),
-        )
+        const errors = missingFields.map((field) => ({
+            field,
+            message: `El campo ${field} es requerido`,
+        }))
+
+        throw new AppError(`Faltan campos requeridos: ${missingFields.join(", ")}`, 400, errors)
     }
 }
 
-const asyncHandler = (fn) => (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next)
+
+const asyncHandler = (fn) => {
+    return (req, res, next) => {
+        Promise.resolve(fn(req, res, next)).catch(next)
+    }
 }
 
 module.exports = {

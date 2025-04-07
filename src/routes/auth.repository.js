@@ -1,8 +1,8 @@
 const express = require("express")
 const authController = require("../controllers/authController")
 const auth = require("../middlewares/auth")
-const validateRequest = require("../middlewares/validateRequest")
-const { loginSchema, usuarioSchema, passwordChangeSchema } = require("../validations/userSchema")
+const validateRequest = require("../utils/validateRequest")
+const { loginSchema, changePasswordSchema } = require("../validations/authSchema")
 
 class AuthRepository {
     constructor() {
@@ -11,31 +11,14 @@ class AuthRepository {
     }
 
     setupRoutes() {
-        this.router.get("/status", (req, res) => {
-            res.json({ status: "Las rutas de AUTH estan funcionando!" })
-        })
+        // Rutas públicas
+        this.router.post("/login", validateRequest(loginSchema), authController.login)
+        // this.router.post("/register", authController.register) // Descomentar si se necesita
 
-        this.router.post("/login", validateRequest(loginSchema), (req, res, next) => {
-            authController.login(req, res, next)
-        })
-        //Descomentar en caso de uso
-/*
-        this.router.post("/register", validateRequest(usuarioSchema), (req, res, next) => {
-            authController.register(req, res, next)
-        })
-*/
-        //Rutas protegidas
-        this.router.post("/logout", auth, (req, res, next) => {
-            authController.logout(req, res, next)
-        })
-
-        this.router.get("/profile", auth, (req, res, next) => {
-            authController.profile(req, res, next)
-        })
-
-        this.router.post("/change-password", auth, validateRequest(passwordChangeSchema), (req, res, next) => {
-            authController.changePassword(req, res, next)
-        })
+        // Rutas protegidas
+        this.router.post("/logout", auth, authController.logout)
+        this.router.get("/profile", auth, authController.profile)
+        this.router.post("/change-password", auth, validateRequest(changePasswordSchema), authController.changePassword)
     }
 
     getRoutes() {

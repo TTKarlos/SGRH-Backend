@@ -1,265 +1,236 @@
 const { Departamento, Centro, Empleado, Op } = require("../models")
-const sequelize = require("../models")
+const AppError = require("../utils/AppError")
+const { createResponse, validateFields, asyncHandler } = require("../utils/responseHelpers")
+const { paginate } = require("../utils/pagination")
+const { buildSearchClause, buildUpdateObject, buildFilterClause } = require("../utils/queryBuilder")
+
 const departamentoController = {
+    getAll: asyncHandler(async (req, res) => {
+        const search = req.query.search || ""
+        const id_centro = req.query.id_centro || null
+        const activo = req.query.activo !== undefined ? req.query.activo === "true" : null
+        const order = req.query.order || "ASC"
 
-    getAll: async (req, res) => {
-        try {
-            const {
-                id_centro,
-                nombre,
-                page = 1,
-                limit = 10,
-                sort = "nombre",
-                order = "ASC"
-            } = req.query
+        let whereClause = {}
 
-            const where = {}
-            if (id_centro) where.id_centro = id_centro
-            if (nombre) where.nombre = { [Op.like]: `%${nombre}%` }
-
-            const offset = (page - 1) * limit
-
-            const { count, rows } = await Departamento.findAndCountAll({
-                where,
-                include: [
-                    {
-                        model: Centro,
-                        attributes: ["id_centro", "nombre"]
-                    }
-                ],
-                order: [[sort, order]],
-                limit: parseInt(limit),
-                offset: parseInt(offset)
-            })
-
-            const totalPages = Math.ceil(count / limit)
-
-            return res.status(200).json({
-                success: true,
-                data: {
-                    departamentos: rows,
-                    pagination: {
-                        total: count,
-                        page: parseInt(page),
-                        limit: parseInt(limit),
-                        totalPages
-                    }
-                }
-            })
-        } catch (error) {
-            console.error("Error al obtener departamentos:", error)
-            return res.status(500).json({
-                success: false,
-                message: "Error al obtener los departamentos",
-                error: error.message
-            })
+        if (search) {
+            whereClause = buildSearchClause(search, ["nombre", "descripcion"])
         }
-    },
 
+        const filtros = buildFilterClause({
+            id_centro,
+            activo,
+        })
 
-    getById: async (req, res) => {
-        try {
-            const { id } = req.params
+        whereClause = { ...whereClause, ...filtros }
 
-            const departamento = await Departamento.findByPk(id, {
-                include: [
-                    {
-                        model: Centro,
-                        attributes: ["id_centro", "nombre"]
-                    },
-                    {
-                        model: Empleado,
-                        attributes: ["id_empleado", "nombre", "apellidos", "puesto_actual", "activo"]
-                    }
-                ]
-            })
-
-            if (!departamento) {
-                return res.status(404).json({
-                    success: false,
-                    message: `No se encontró el departamento con ID ${id}`
-                })
-            }
-
-            return res.status(200).json({
-                success: true,
-                data: {
-                    departamento
-                }
-            })
-        } catch (error) {
-            console.error(`Error al obtener departamento con ID ${req.params.id}:`, error)
-            return res.status(500).json({
-                success: false,
-                message: "Error al obtener el departamento",
-                error: error.message
-            })
+        const options = {
+            where: whereClause,
+            order: [["nombre", order]],
+            include: [
+                {
+                    model: Centro,
+                    attributes: ["id_centro", "nombre"],
+                },
+            ],
         }
-    },
 
+        const { data: departamentos, pagination } = await paginate(Departamento, req, options)
 
-    create: async (req, res) => {
-        try {
-            const { id_centro, nombre, descripcion } = req.body
+        return res.status(200).json(
+            createResponse(true, "Departamentos obtenidos correctamente", {
+                departamentos,
+                pagination,
+            }),
+        )
+    }),
 
+    getById: asyncHandler(async (req, res) => {
+        const { id } = req.params
+
+        if (!id || isNaN(Number.parseInt(id, 10))) {
+            throw new AppError("ID de departamento inválido", 400)
+        }
+
+        const departamento = await Departamento.findByPk(id, {
+            include: [
+                {
+                    model: Centro,
+                    attributes: ["id_centro", "nombre"],
+                },
+            ],
+        })
+
+        if (!departamento) {
+            throw new AppError(`Departamento con ID ${id} no encontrado`, 404)
+        }
+
+        const empleadosCount = await Empleado.count({
+            where: { id_departamento: id },
+        })
+
+        return res.status(200).json(
+            createResponse(true, "Departamento obtenido correctamente", {
+                departamento,
+                estadisticas: {
+                    empleados: empleadosCount,
+                },
+            }),
+        )
+    }),
+
+    create: asyncHandler(async (req, res) => {
+        const { nombre, id_centro, descripcion, activo } = req.body
+
+        validateFields(["nombre", "id_centro"], req.body)
+
+        const centroExiste = await Centro.findByPk(id_centro)
+
+        if (!centroExiste) {
+            throw new AppError("El centro especificado no existe", 404)
+        }
+
+        const departamentoExistente = await Departamento.findOne({
+            where: { nombre, id_centro },
+        })
+
+        if (departamentoExistente) {
+            throw new AppError("Ya existe un departamento con este nombre en el centro seleccionado", 400)
+        }
+
+        const nuevoDepartamento = await Departamento.create({
+            nombre,
+            id_centro,
+            descripcion,
+            activo: activo !== undefined ? activo : true,
+        })
+
+        const departamentoConCentro = await Departamento.findByPk(nuevoDepartamento.id_departamento, {
+            include: [
+                {
+                    model: Centro,
+                    attributes: ["id_centro", "nombre"],
+                },
+            ],
+        })
+
+        return res
+            .status(201)
+            .json(createResponse(true, "Departamento creado correctamente", { departamento: departamentoConCentro }, 201))
+    }),
+
+    update: asyncHandler(async (req, res) => {
+        const { id } = req.params
+        const { nombre, id_centro } = req.body
+
+        if (!id || isNaN(Number.parseInt(id, 10))) {
+            throw new AppError("ID de departamento inválido", 400)
+        }
+
+        const departamento = await Departamento.findByPk(id)
+
+        if (!departamento) {
+            throw new AppError(`Departamento con ID ${id} no encontrado`, 404)
+        }
+
+        if (id_centro && id_centro !== departamento.id_centro) {
             const centroExiste = await Centro.findByPk(id_centro)
-            if (!centroExiste) {
-                return res.status(400).json({
-                    success: false,
-                    message: `El centro con ID ${id_centro} no existe`
-                })
-            }
 
+            if (!centroExiste) {
+                throw new AppError("El centro especificado no existe", 404)
+            }
+        }
+
+        if ((nombre && nombre !== departamento.nombre) || (id_centro && id_centro !== departamento.id_centro)) {
             const departamentoExistente = await Departamento.findOne({
                 where: {
-                    nombre,
-                    id_centro
-                }
+                    nombre: nombre || departamento.nombre,
+                    id_centro: id_centro || departamento.id_centro,
+                    id_departamento: { [Op.ne]: id },
+                },
             })
 
             if (departamentoExistente) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Ya existe un departamento con el nombre "${nombre}" en este centro`
-                })
+                throw new AppError("Ya existe otro departamento con este nombre en el centro seleccionado", 400)
             }
-
-            const nuevoDepartamento = await Departamento.create({
-                id_centro,
-                nombre,
-                descripcion
-            })
-
-            return res.status(201).json({
-                success: true,
-                message: "Departamento creado correctamente",
-                data: {
-                    departamento: nuevoDepartamento
-                }
-            })
-        } catch (error) {
-            console.error("Error al crear departamento:", error)
-            return res.status(500).json({
-                success: false,
-                message: "Error al crear el departamento",
-                error: error.message
-            })
         }
-    },
 
+        const updateData = buildUpdateObject(req.body, ["nombre", "id_centro", "descripcion", "activo"])
 
-    update: async (req, res) => {
-        try {
-            const { id } = req.params
-            const { id_centro, nombre, descripcion } = req.body
+        await departamento.update(updateData)
 
-            const departamento = await Departamento.findByPk(id)
-            if (!departamento) {
-                return res.status(404).json({
-                    success: false,
-                    message: `No se encontró el departamento con ID ${id}`
-                })
-            }
+        const departamentoActualizado = await Departamento.findByPk(id, {
+            include: [
+                {
+                    model: Centro,
+                    attributes: ["id_centro", "nombre"],
+                },
+            ],
+        })
 
-            if (id_centro && id_centro !== departamento.id_centro) {
-                const centroExiste = await Centro.findByPk(id_centro)
-                if (!centroExiste) {
-                    return res.status(400).json({
-                        success: false,
-                        message: `El centro con ID ${id_centro} no existe`
-                    })
-                }
-            }
+        return res
+            .status(200)
+            .json(createResponse(true, "Departamento actualizado correctamente", { departamento: departamentoActualizado }))
+    }),
 
-            if (nombre && nombre !== departamento.nombre) {
-                const departamentoExistente = await Departamento.findOne({
-                    where: {
-                        nombre,
-                        id_centro: id_centro || departamento.id_centro,
-                        id_departamento: { [Op.ne]: id }
-                    }
-                })
+    delete: asyncHandler(async (req, res) => {
+        const { id } = req.params
 
-                if (departamentoExistente) {
-                    return res.status(400).json({
-                        success: false,
-                        message: `Ya existe un departamento con el nombre "${nombre}" en este centro`
-                    })
-                }
-            }
-
-            await departamento.update({
-                id_centro: id_centro || departamento.id_centro,
-                nombre: nombre || departamento.nombre,
-                descripcion: descripcion !== undefined ? descripcion : departamento.descripcion
-            })
-
-            const departamentoActualizado = await Departamento.findByPk(id, {
-                include: [
-                    {
-                        model: Centro,
-                        attributes: ["id_centro", "nombre"]
-                    }
-                ]
-            })
-
-            return res.status(200).json({
-                success: true,
-                message: "Departamento actualizado correctamente",
-                data: {
-                    departamento: departamentoActualizado
-                }
-            })
-        } catch (error) {
-            console.error(`Error al actualizar departamento con ID ${req.params.id}:`, error)
-            return res.status(500).json({
-                success: false,
-                message: "Error al actualizar el departamento",
-                error: error.message
-            })
+        if (!id || isNaN(Number.parseInt(id, 10))) {
+            throw new AppError("ID de departamento inválido", 400)
         }
-    },
 
+        const departamento = await Departamento.findByPk(id)
 
-    delete: async (req, res) => {
-        try {
-            const { id } = req.params
-
-            const departamento = await Departamento.findByPk(id)
-            if (!departamento) {
-                return res.status(404).json({
-                    success: false,
-                    message: `No se encontró el departamento con ID ${id}`
-                })
-            }
-
-            const empleadosAsociados = await Empleado.count({
-                where: { id_departamento: id }
-            })
-
-            if (empleadosAsociados > 0) {
-                return res.status(400).json({
-                    success: false,
-                    message: `No se puede eliminar el departamento porque tiene ${empleadosAsociados} empleado(s) asociado(s)`
-                })
-            }
-
-            await departamento.destroy()
-
-            return res.status(200).json({
-                success: true,
-                message: "Departamento eliminado correctamente"
-            })
-        } catch (error) {
-            console.error(`Error al eliminar departamento con ID ${req.params.id}:`, error)
-            return res.status(500).json({
-                success: false,
-                message: "Error al eliminar el departamento",
-                error: error.message
-            })
+        if (!departamento) {
+            throw new AppError(`Departamento con ID ${id} no encontrado`, 404)
         }
-    },
+
+        const empleadosAsociados = await Empleado.count({
+            where: { id_departamento: id },
+        })
+
+        if (empleadosAsociados > 0) {
+            throw new AppError("No se puede eliminar el departamento porque tiene empleados asociados", 400)
+        }
+
+        await departamento.destroy()
+
+        return res.status(200).json(createResponse(true, "Departamento eliminado correctamente"))
+    }),
+
+    changeStatus: asyncHandler(async (req, res) => {
+        const { id } = req.params
+        const { activo } = req.body
+
+        if (!id || isNaN(Number.parseInt(id, 10))) {
+            throw new AppError("ID de departamento inválido", 400)
+        }
+
+        if (activo === undefined) {
+            throw new AppError("El estado (activo) es requerido", 400)
+        }
+
+        const departamento = await Departamento.findByPk(id)
+
+        if (!departamento) {
+            throw new AppError(`Departamento con ID ${id} no encontrado`, 404)
+        }
+
+        await departamento.update({ activo })
+
+        return res.status(200).json(
+            createResponse(true, `Departamento ${activo ? "activado" : "desactivado"} correctamente`, {
+                departamento: {
+                    id_departamento: departamento.id_departamento,
+                    nombre: departamento.nombre,
+                    activo: departamento.activo,
+                },
+            }),
+        )
+    }),
 
 }
 
 module.exports = departamentoController
+

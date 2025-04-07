@@ -5,6 +5,8 @@ const permisoRepository = require('./permiso.repository');
 const rolRepository = require('./rol.repository');
 const empleadosRepository = require('./empleado.repository');
 const departamentoRepository = require('./departamento.repository');
+const centroRepository = require('./centro.repository');
+const zonaRepository = require('./zona.repository');
 
 class ApiRouter {
     constructor() {
@@ -19,6 +21,8 @@ class ApiRouter {
         this.router.use("/rol", rolRepository.getRoutes());
         this.router.use("/empleados", empleadosRepository.getRoutes());
         this.router.use("/departamentos", departamentoRepository.getRoutes());
+        this.router.use("/centros", centroRepository.getRoutes())
+        this.router.use("/zonas", centroRepository.getRoutes())
 
         this.router.get('/', (req, res) => {
             res.json({

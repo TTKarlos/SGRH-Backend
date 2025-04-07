@@ -1,44 +1,25 @@
+// Ejemplo para src/routes/user.repository.js
 const express = require("express")
 const userController = require("../controllers/userController")
 const auth = require("../middlewares/auth")
-const validateRequest = require("../middlewares/validateRequest")
-const { usuarioSchema } = require("../validations/userSchema")
-const {isAdmin} = require("../middlewares/roleMiddleware");
-const empleadosController = require("../controllers/empleadoController");
+const { isAdmin } = require("../middlewares/roleMiddleware")
+const validateRequest = require("../utils/validateRequest")
+const { createUserSchema, updateUserSchema, resetPasswordSchema } = require("../validations/userSchema")
 
-/**
- * User routes handler
- */
 class UserRepository {
     constructor() {
         this.router = express.Router()
         this.setupRoutes()
     }
-run 
+
     setupRoutes() {
-        this.router.get("/", [auth, isAdmin], (req, res, next) => {
-            userController.getAll(req, res, next)
-        })
-
-        this.router.get("/:id", [auth, isAdmin], (req, res, next) => {
-            userController.getById(req, res, next)
-        })
-
-        this.router.post("/", [auth, isAdmin], validateRequest(usuarioSchema), (req, res, next) => {
-            userController.create(req, res, next)
-        })
-
-        this.router.put("/:id", [auth, isAdmin], validateRequest(usuarioSchema), (req, res, next) => {
-            userController.update(req, res, next)
-        })
-
-        this.router.delete("/:id", [auth, isAdmin], (req, res, next) => {
-            userController.delete(req, res, next)
-        })
-
-        this.router.patch("/:id", [auth, isAdmin], (req, res, next) => {
-            userController.changeStatus(req, res, next)
-        })
+        this.router.get("/", auth, isAdmin, userController.getAll)
+        this.router.get("/:id", auth, isAdmin, userController.getById)
+        this.router.post("/", auth, isAdmin, validateRequest(createUserSchema), userController.create)
+        this.router.put("/:id", auth, isAdmin, validateRequest(updateUserSchema), userController.update)
+        this.router.delete("/:id", auth, isAdmin, userController.delete)
+        this.router.patch("/:id/status", auth, isAdmin, userController.changeStatus)
+        this.router.post("/:id/reset-password", auth, isAdmin, validateRequest(resetPasswordSchema), userController.resetPassword)
     }
 
     getRoutes() {
@@ -47,4 +28,3 @@ run
 }
 
 module.exports = new UserRepository()
-
