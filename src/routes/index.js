@@ -22,7 +22,7 @@ class ApiRouter {
         this.router.use("/empleados", empleadosRepository.getRoutes());
         this.router.use("/departamentos", departamentoRepository.getRoutes());
         this.router.use("/centros", centroRepository.getRoutes())
-        this.router.use("/zonas", centroRepository.getRoutes())
+        this.router.use("/zonas", zonaRepository.getRoutes())
 
         this.router.get('/', (req, res) => {
             res.json({

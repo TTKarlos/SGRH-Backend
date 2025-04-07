@@ -259,6 +259,11 @@ const userController = {
             throw new AppError(`Usuario con ID ${id} no encontrado`, 404)
         }
 
+        const isCurrentPassword = await usuario.validPassword(newPassword)
+        if (isCurrentPassword) {
+            throw new AppError("La nueva contraseña no puede ser igual a la actual", 400)
+        }
+
         usuario.password_hash = newPassword
         await usuario.save()
 
