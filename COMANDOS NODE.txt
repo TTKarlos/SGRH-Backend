@@ -46,3 +46,15 @@ doppler secrets upload .env
 Download
 doppler secrets download .env(Name)
 
+
+CONFIGURACION PARA SUBIDAS SERVIDOR
+# Crear el directorio
+sudo mkdir -p /documentos
+
+# Cambiar el propietario al usuario que ejecuta Node.js
+# Reemplaza 'usuario' con el usuario que ejecuta tu aplicación Node.js
+sudo chown -R usuario:usuario /documentos
+
+# Establecer permisos adecuados
+sudo chmod -R 755 /documentos
+

@@ -14,7 +14,7 @@ class ZonaRepository {
     setupRoutes() {
         this.router.get("/", auth, zonaController.getAll)
         this.router.get("/:id", auth, zonaController.getById)
-        this.router.post("/add", auth, isAdmin, validateRequest(createZonaSchema), zonaController.create)
+        this.router.post("/", auth, isAdmin, validateRequest(createZonaSchema), zonaController.create)
         this.router.put("/:id", auth, isAdmin, validateRequest(updateZonaSchema), zonaController.update)
         this.router.delete("/:id", auth, isAdmin, zonaController.delete)
     }

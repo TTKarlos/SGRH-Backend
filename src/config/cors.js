@@ -1,6 +1,10 @@
 const corsOptions = {
-    origin: ["http://localhost:3000","https://api.grupolasirena.dev","http://localhost:8080"],
-
+    origin: [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:8080",
+        "https://sgrh.grupolasirena.dev"
+    ],
 
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
 
@@ -9,7 +13,7 @@ const corsOptions = {
     credentials: true,
 
     maxAge: 86400,
+
 }
 
 module.exports = corsOptions
-
