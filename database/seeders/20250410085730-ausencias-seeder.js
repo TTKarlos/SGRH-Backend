@@ -22,7 +22,6 @@ module.exports = {
     const ausenciasData = []
 
     for (const empleado of empleados) {
-      // Vacaciones de verano
       ausenciasData.push({
         id_empleado: empleado.id_empleado,
         id_tipo_ausencia:
@@ -31,7 +30,6 @@ module.exports = {
         fecha_fin: "2023-08-15",
       })
 
-      // Baja por enfermedad
       ausenciasData.push({
         id_empleado: empleado.id_empleado,
         id_tipo_ausencia:
@@ -41,7 +39,6 @@ module.exports = {
         fecha_fin: "2023-03-15",
       })
 
-      // Permiso retribuido
       ausenciasData.push({
         id_empleado: empleado.id_empleado,
         id_tipo_ausencia:

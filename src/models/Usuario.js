@@ -76,10 +76,22 @@ const Usuario = sequelize.define(
             type: DataTypes.STRING(500),
             allowNull: true,
         },
+        created_at: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            defaultValue: DataTypes.NOW,
+        },
+        updated_at: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            defaultValue: DataTypes.NOW,
+        }
     },
     {
         tableName: "usuarios",
-        timestamps: false,
+        timestamps: true,
+        createdAt: 'created_at',
+        updatedAt: 'updated_at',
         hooks: {
             beforeCreate: async (usuario) => {
                 if (usuario.password_hash) {
@@ -147,4 +159,3 @@ Usuario.findByToken = async (token) => {
 }
 
 module.exports = Usuario
-

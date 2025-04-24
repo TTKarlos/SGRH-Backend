@@ -1,4 +1,4 @@
-//Roles del distema
+//Roles del sistema
 const ROLES = {
     ADMIN: "ADMIN",
     GERENTE: "GERENTE",

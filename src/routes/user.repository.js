@@ -1,4 +1,3 @@
-// Ejemplo para src/routes/user.repository.js
 const express = require("express")
 const userController = require("../controllers/userController")
 const auth = require("../middlewares/auth")

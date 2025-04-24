@@ -1,5 +1,4 @@
 require("dotenv").config()
-// Añadir después de cargar dotenv
 const checkUploadDirectory = require("./utils/checkUploadDir")
 const express = require("express")
 const morgan = require("morgan")
@@ -24,13 +23,11 @@ app.use(morgan("dev"))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
-// Asegurar que existe el directorio de uploads
 const uploadsDir = path.join(__dirname, "uploads")
 fs.ensureDirSync(uploadsDir)
 fs.ensureDirSync(path.join(uploadsDir, "documentos"))
 fs.ensureDirSync(path.join(uploadsDir, "documentos", "empleados"))
 
-// Verificar directorio de uploads
 checkUploadDirectory()
     .then((isValid) => {
         if (!isValid) {

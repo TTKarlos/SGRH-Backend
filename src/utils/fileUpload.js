@@ -3,6 +3,7 @@ const path = require("path")
 const fs = require("fs-extra")
 const AppError = require("./AppError")
 const crypto = require("crypto")
+require("dotenv").config()
 
 const sanitizeFilename = (filename) => {
     return filename
