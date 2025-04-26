@@ -133,4 +133,5 @@ dist
 # idea
 .idea/
 
-/src/uploads/*
+/database/uploads/*
+

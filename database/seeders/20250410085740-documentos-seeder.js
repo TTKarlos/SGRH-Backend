@@ -1,5 +1,15 @@
 const path = require("path")
 const fs = require("fs-extra")
+require("dotenv").config()
+
+const getUploadPath = () => {
+  const env = process.env.NODE_ENV || 'development'
+  if (env === 'production') {
+    return process.env.PROD_UPLOAD_PATH || '/var/www/sgrh/documentos/empleados'
+  } else {
+    return process.env.DEV_UPLOAD_PATH || path.join(__dirname, "../uploads/documentos/empleados")
+  }
+}
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -27,7 +37,7 @@ module.exports = {
     const documentosData = []
     const fechaActual = new Date()
 
-    const uploadsDir = path.join(__dirname, "../uploads/documentos/empleados")
+    const uploadsDir = getUploadPath()
     await fs.ensureDir(uploadsDir)
 
     for (const empleado of empleados) {

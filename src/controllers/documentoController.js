@@ -90,9 +90,9 @@ const documentoController = {
             throw new AppError("No se ha proporcionado ningún archivo", 400)
         }
 
-        const { id_empleado, tipo_documento, observaciones } = req.body
+        const { id_empleado, nombre, tipo_documento, observaciones } = req.body
 
-        validateFields(["id_empleado", "tipo_documento"], req.body)
+        validateFields(["id_empleado", "nombre", "tipo_documento"], req.body)
 
         const empleadoExiste = await Empleado.findByPk(id_empleado)
         if (!empleadoExiste) {
@@ -103,7 +103,7 @@ const documentoController = {
         const nuevoDocumento = await Documento.create({
             id_empleado,
             tipo_documento,
-            nombre: tipo_documento,
+            nombre,
             ruta_archivo: req.file.path,
             nombre_original: req.file.originalname,
             mimetype: req.file.mimetype,
@@ -226,12 +226,59 @@ const documentoController = {
         return res.status(200).json(createResponse(true, "Documento eliminado correctamente"))
     }),
 
-    updateWithFile: asyncHandler(async (req, res) => {
+    update: asyncHandler(async (req, res) => {
         const { id } = req.params
-        const { id_empleado, tipo_documento, observaciones } = req.body
+        const { nombre, tipo_documento, observaciones, id_empleado } = req.body
 
         if (!id || isNaN(Number.parseInt(id, 10))) {
             throw new AppError("ID de documento inválido", 400)
+        }
+
+        validateFields(["nombre", "tipo_documento"], req.body)
+
+        const documento = await Documento.findByPk(id)
+
+        if (!documento) {
+            throw new AppError(`Documento con ID ${id} no encontrado`, 404)
+        }
+
+        if (id_empleado) {
+            const empleadoExiste = await Empleado.findByPk(id_empleado)
+            if (!empleadoExiste) {
+                throw new AppError("El empleado especificado no existe", 404)
+            }
+        }
+
+        const updateData = buildUpdateObject(req.body, ["nombre", "tipo_documento", "observaciones", "id_empleado"])
+
+        await documento.update(updateData)
+
+        const documentoActualizado = await Documento.findByPk(id, {
+            include: [
+                {
+                    model: Empleado,
+                    attributes: ["id_empleado", "nombre", "apellidos", "dni_nie"],
+                },
+            ],
+        })
+
+        return res
+            .status(200)
+            .json(createResponse(true, "Documento actualizado correctamente", { documento: documentoActualizado }))
+    }),
+
+    updateWithFile: asyncHandler(async (req, res) => {
+        const { id } = req.params
+        const { nombre, tipo_documento, observaciones, id_empleado } = req.body
+
+        if (!id || isNaN(Number.parseInt(id, 10))) {
+            throw new AppError("ID de documento inválido", 400)
+        }
+
+        validateFields(["nombre", "tipo_documento"], req.body)
+
+        if (!req.file) {
+            throw new AppError("No se ha proporcionado ningún archivo", 400)
         }
 
         const documento = await Documento.findByPk(id)
@@ -243,32 +290,28 @@ const documentoController = {
         if (id_empleado) {
             const empleadoExiste = await Empleado.findByPk(id_empleado)
             if (!empleadoExiste) {
-                if (req.file) {
-                    await fs.unlink(req.file.path).catch((err) => console.error("Error al eliminar archivo:", err))
-                }
+                await fs.unlink(req.file.path).catch((err) => console.error("Error al eliminar archivo:", err))
                 throw new AppError("El empleado especificado no existe", 404)
             }
         }
 
-        const updateData = buildUpdateObject(req.body, ["id_empleado", "tipo_documento", "observaciones"])
+        const updateData = buildUpdateObject(req.body, ["nombre", "tipo_documento", "observaciones", "id_empleado"])
 
-        if (req.file) {
-            if (documento.ruta_archivo) {
-                try {
-                    await fs.access(documento.ruta_archivo)
-                    await fs.unlink(documento.ruta_archivo)
-                } catch (error) {
-                    console.error("Error al eliminar archivo anterior:", error)
-                }
+        if (documento.ruta_archivo) {
+            try {
+                await fs.access(documento.ruta_archivo)
+                await fs.unlink(documento.ruta_archivo)
+            } catch (error) {
+                console.error("Error al eliminar archivo anterior:", error)
             }
-
-            Object.assign(updateData, {
-                ruta_archivo: req.file.path,
-                nombre_original: req.file.originalname,
-                mimetype: req.file.mimetype,
-                tamano: req.file.size,
-            })
         }
+
+        Object.assign(updateData, {
+            ruta_archivo: req.file.path,
+            nombre_original: req.file.originalname,
+            mimetype: req.file.mimetype,
+            tamano: req.file.size,
+        })
 
         await documento.update(updateData)
 

@@ -1,11 +1,20 @@
 const fs = require("fs-extra")
 const path = require("path")
 
+const getUploadPath = () => {
+    const env = process.env.NODE_ENV || 'development'
+    if (env === 'production') {
+        return process.env.PROD_UPLOAD_PATH
+    } else {
+        return process.env.DEV_UPLOAD_PATH
+    }
+}
+
 /**
  * Verifica que el directorio de uploads exista y tenga permisos correctos
  */
 async function checkUploadDirectory() {
-    const uploadPath = process.env.UPLOAD_PATH || path.join(__dirname, "../uploads")
+    const uploadPath = getUploadPath()
 
     try {
         await fs.ensureDir(uploadPath)

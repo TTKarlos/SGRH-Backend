@@ -12,6 +12,15 @@ const sanitizeFilename = (filename) => {
         .toLowerCase()
 }
 
+const getUploadPath = () => {
+    const env = process.env.NODE_ENV || 'development'
+    if (env === 'production') {
+        return process.env.PROD_UPLOAD_PATH
+    } else {
+        return process.env.DEV_UPLOAD_PATH
+    }
+}
+
 const storage = multer.diskStorage({
     destination: async (req, file, cb) => {
         try {
@@ -21,7 +30,7 @@ const storage = multer.diskStorage({
                 return cb(new AppError("ID de empleado no proporcionado", 400))
             }
 
-            const basePath = process.env.UPLOAD_PATH || path.join(__dirname, "../uploads")
+            const basePath = getUploadPath()
             const destPath = path.join(basePath, id_empleado.toString())
 
             await fs.ensureDir(destPath)
