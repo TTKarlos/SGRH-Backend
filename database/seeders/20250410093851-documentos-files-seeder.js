@@ -21,7 +21,7 @@ module.exports = {
     }
 
     const documentos = await queryInterface.sequelize.query(
-        "SELECT id_documento, id_empleado, tipo_documento, nombre_original, mimetype FROM documentos",
+        "SELECT id_documento, id_empleado, nombre, nombre_original, mimetype FROM documentos",
         {
           type: Sequelize.QueryTypes.SELECT,
         },
@@ -66,7 +66,7 @@ module.exports = {
           const buffer = Buffer.concat([pngHeader, Buffer.alloc(100, 0)])
           await fs.writeFile(filePath, buffer)
         } else {
-          await fs.writeFile(filePath, `Contenido de ejemplo para ${documento.tipo_documento}`)
+          await fs.writeFile(filePath, `Contenido de ejemplo para ${documento.nombre}`)
         }
 
         await queryInterface.sequelize.query(

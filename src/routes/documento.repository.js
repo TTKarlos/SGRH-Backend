@@ -17,7 +17,6 @@ class DocumentoRepository {
         this.router.get("/preview/:id", auth, documentoController.preview)
 
         this.router.get("/empleado/:id_empleado", auth, documentoController.getByEmpleado)
-        this.router.get("/tipo/:tipo", auth, documentoController.getByTipo)
 
         this.router.put("/with-file/:id", auth, isAdmin, upload.single("archivo"), documentoController.updateWithFile)
 

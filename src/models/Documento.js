@@ -13,10 +13,6 @@ const Documento = sequelize.define(
             type: DataTypes.INTEGER,
             allowNull: false,
         },
-        tipo_documento: {
-            type: DataTypes.STRING(100),
-            allowNull: false,
-        },
         nombre: {
             type: DataTypes.STRING(255),
             allowNull: false,

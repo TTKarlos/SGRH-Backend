@@ -23,7 +23,7 @@ const Ausencia = sequelize.define(
         },
         fecha_fin: {
             type: DataTypes.DATEONLY,
-            allowNull: false,
+            allowNull: true,
         },
     },
     {

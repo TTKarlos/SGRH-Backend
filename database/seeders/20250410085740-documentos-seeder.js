@@ -23,17 +23,6 @@ module.exports = {
       return
     }
 
-    const tiposDocumento = [
-      "Contrato",
-      "CV",
-      "DNI/NIE",
-      "Título académico",
-      "Certificado",
-      "Nómina",
-      "Evaluación de desempeño",
-      "Otros",
-    ]
-
     const documentosData = []
     const fechaActual = new Date()
 
@@ -46,8 +35,7 @@ module.exports = {
 
       documentosData.push({
         id_empleado: empleado.id_empleado,
-        tipo_documento: "Contrato",
-        nombre: `Contrato_${empleado.id_empleado}`,
+        nombre: `Contrato de trabajo`,
         ruta_archivo: null,
         nombre_original: `Contrato_${empleado.id_empleado}.pdf`,
         mimetype: "application/pdf",
@@ -58,8 +46,7 @@ module.exports = {
 
       documentosData.push({
         id_empleado: empleado.id_empleado,
-        tipo_documento: "CV",
-        nombre: `CV_${empleado.id_empleado}`,
+        nombre: `Curriculum Vitae`,
         ruta_archivo: null,
         nombre_original: `CV_${empleado.id_empleado}.pdf`,
         mimetype: "application/pdf",
@@ -70,8 +57,7 @@ module.exports = {
 
       documentosData.push({
         id_empleado: empleado.id_empleado,
-        tipo_documento: "DNI/NIE",
-        nombre: `DNI_${empleado.id_empleado}`,
+        nombre: `Documento de identidad`,
         ruta_archivo: null,
         nombre_original: `DNI_${empleado.id_empleado}.jpg`,
         mimetype: "image/jpeg",
@@ -80,24 +66,30 @@ module.exports = {
         observaciones: "Documento de identidad",
       })
 
+      const documentosAdicionales = [
+        "Título académico",
+        "Certificado de formación",
+        "Nómina",
+        "Evaluación de desempeño",
+        "Documento adicional"
+      ]
+
       const numDocumentosAdicionales = 1 + Math.floor(Math.random() * 3)
 
       for (let i = 0; i < numDocumentosAdicionales; i++) {
-        const tipoIndex = 3 + Math.floor(Math.random() * (tiposDocumento.length - 3))
+        const docIndex = Math.floor(Math.random() * documentosAdicionales.length)
         const diasAtras = Math.floor(Math.random() * 150)
-        const tipoDoc = tiposDocumento[tipoIndex]
-        const nombreDoc = `Doc_${tipoDoc.replace(/\s+/g, "_")}_${empleado.id_empleado}_${i}`
+        const nombreDoc = documentosAdicionales[docIndex]
 
         documentosData.push({
           id_empleado: empleado.id_empleado,
-          tipo_documento: tipoDoc,
           nombre: nombreDoc,
           ruta_archivo: null,
-          nombre_original: `${nombreDoc}.pdf`,
+          nombre_original: `${nombreDoc.replace(/\s+/g, "_")}_${empleado.id_empleado}_${i}.pdf`,
           mimetype: "application/pdf",
           tamano: 0,
           fecha_subida: new Date(fechaActual.getTime() - diasAtras * 24 * 60 * 60 * 1000),
-          observaciones: `Documento de ${tipoDoc.toLowerCase()}`,
+          observaciones: `Documento: ${nombreDoc}`,
         })
       }
     }

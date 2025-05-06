@@ -10,7 +10,6 @@ const documentoController = {
     getAll: asyncHandler(async (req, res) => {
         const search = req.query.search || ""
         const id_empleado = req.query.id_empleado || null
-        const tipo_documento = req.query.tipo_documento || null
         const fecha_desde = req.query.fecha_desde || null
         const fecha_hasta = req.query.fecha_hasta || null
         const order = req.query.order || "DESC"
@@ -19,12 +18,11 @@ const documentoController = {
         let whereClause = {}
 
         if (search) {
-            whereClause = buildSearchClause(search, ["nombre", "tipo_documento", "observaciones"])
+            whereClause = buildSearchClause(search, ["nombre", "observaciones"])
         }
 
         const filtros = buildFilterClause({
             id_empleado,
-            tipo_documento,
         })
 
         if (fecha_desde) {
@@ -90,9 +88,9 @@ const documentoController = {
             throw new AppError("No se ha proporcionado ningún archivo", 400)
         }
 
-        const { id_empleado, nombre, tipo_documento, observaciones } = req.body
+        const { id_empleado, nombre, observaciones } = req.body
 
-        validateFields(["id_empleado", "nombre", "tipo_documento"], req.body)
+        validateFields(["id_empleado", "nombre"], req.body)
 
         const empleadoExiste = await Empleado.findByPk(id_empleado)
         if (!empleadoExiste) {
@@ -102,7 +100,6 @@ const documentoController = {
 
         const nuevoDocumento = await Documento.create({
             id_empleado,
-            tipo_documento,
             nombre,
             ruta_archivo: req.file.path,
             nombre_original: req.file.originalname,
@@ -228,13 +225,13 @@ const documentoController = {
 
     update: asyncHandler(async (req, res) => {
         const { id } = req.params
-        const { nombre, tipo_documento, observaciones, id_empleado } = req.body
+        const { nombre, observaciones, id_empleado } = req.body
 
         if (!id || isNaN(Number.parseInt(id, 10))) {
             throw new AppError("ID de documento inválido", 400)
         }
 
-        validateFields(["nombre", "tipo_documento"], req.body)
+        validateFields(["nombre"], req.body)
 
         const documento = await Documento.findByPk(id)
 
@@ -249,7 +246,7 @@ const documentoController = {
             }
         }
 
-        const updateData = buildUpdateObject(req.body, ["nombre", "tipo_documento", "observaciones", "id_empleado"])
+        const updateData = buildUpdateObject(req.body, ["nombre", "observaciones", "id_empleado"])
 
         await documento.update(updateData)
 
@@ -269,13 +266,13 @@ const documentoController = {
 
     updateWithFile: asyncHandler(async (req, res) => {
         const { id } = req.params
-        const { nombre, tipo_documento, observaciones, id_empleado } = req.body
+        const { nombre, observaciones, id_empleado } = req.body
 
         if (!id || isNaN(Number.parseInt(id, 10))) {
             throw new AppError("ID de documento inválido", 400)
         }
 
-        validateFields(["nombre", "tipo_documento"], req.body)
+        validateFields(["nombre"], req.body)
 
         if (!req.file) {
             throw new AppError("No se ha proporcionado ningún archivo", 400)
@@ -295,7 +292,7 @@ const documentoController = {
             }
         }
 
-        const updateData = buildUpdateObject(req.body, ["nombre", "tipo_documento", "observaciones", "id_empleado"])
+        const updateData = buildUpdateObject(req.body, ["nombre", "observaciones", "id_empleado"])
 
         if (documento.ruta_archivo) {
             try {
@@ -358,35 +355,6 @@ const documentoController = {
                     nombre: empleado.nombre,
                     apellidos: empleado.apellidos,
                 },
-            }),
-        )
-    }),
-
-    getByTipo: asyncHandler(async (req, res) => {
-        const { tipo } = req.params
-
-        if (!tipo) {
-            throw new AppError("Tipo de documento inválido", 400)
-        }
-
-        const options = {
-            where: { tipo_documento: tipo },
-            include: [
-                {
-                    model: Empleado,
-                    attributes: ["id_empleado", "nombre", "apellidos", "dni_nie"],
-                },
-            ],
-            order: [["fecha_subida", "DESC"]],
-        }
-
-        const { data: documentos, pagination } = await paginate(Documento, req, options)
-
-        return res.status(200).json(
-            createResponse(true, `Documentos de tipo "${tipo}" obtenidos correctamente`, {
-                documentos,
-                pagination,
-                tipo_documento: tipo,
             }),
         )
     }),

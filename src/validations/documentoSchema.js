@@ -8,12 +8,6 @@ const createDocumentoSchema = yup.object().shape({
         .positive("El ID del empleado debe ser un número positivo")
         .integer("El ID del empleado debe ser un número entero"),
 
-    tipo_documento: yup
-        .string()
-        .required("El tipo de documento es requerido")
-        .min(2, "El tipo de documento debe tener al menos 2 caracteres")
-        .max(100, "El tipo de documento no puede exceder los 100 caracteres"),
-
     nombre: yup
         .string()
         .required("El nombre del documento es requerido")
@@ -29,11 +23,6 @@ const updateDocumentoSchema = yup.object().shape({
         .number()
         .positive("El ID del empleado debe ser un número positivo")
         .integer("El ID del empleado debe ser un número entero"),
-
-    tipo_documento: yup
-        .string()
-        .min(2, "El tipo de documento debe tener al menos 2 caracteres")
-        .max(100, "El tipo de documento no puede exceder los 100 caracteres"),
 
     nombre: yup
         .string()

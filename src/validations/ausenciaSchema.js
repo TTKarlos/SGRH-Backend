@@ -21,8 +21,6 @@ const createAusenciaSchema = yup.object().shape({
 
     fecha_fin: yup
         .date()
-        .required("La fecha de fin es requerida")
-        .typeError("La fecha de fin debe ser una fecha válida")
         .min(yup.ref("fecha_inicio"), "La fecha de fin debe ser igual o posterior a la fecha de inicio"),
 })
 
@@ -42,7 +40,6 @@ const updateAusenciaSchema = yup.object().shape({
 
     fecha_fin: yup
         .date()
-        .typeError("La fecha de fin debe ser una fecha válida")
         .min(yup.ref("fecha_inicio"), "La fecha de fin debe ser igual o posterior a la fecha de inicio"),
 })
 

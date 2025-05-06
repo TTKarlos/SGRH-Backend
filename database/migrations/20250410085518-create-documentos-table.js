@@ -18,10 +18,6 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "RESTRICT",
       },
-      tipo_documento: {
-        type: Sequelize.STRING(100),
-        allowNull: false,
-      },
       nombre: {
         type: Sequelize.STRING(255),
         allowNull: false,
@@ -55,10 +51,6 @@ module.exports = {
 
     await queryInterface.addIndex("documentos", ["id_empleado"], {
       name: "idx_documentos_empleado",
-    })
-
-    await queryInterface.addIndex("documentos", ["tipo_documento"], {
-      name: "idx_documentos_tipo",
     })
 
     await queryInterface.addIndex("documentos", ["fecha_subida"], {

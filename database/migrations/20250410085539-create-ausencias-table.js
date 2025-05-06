@@ -34,7 +34,7 @@ module.exports = {
       },
       fecha_fin: {
         type: Sequelize.DATEONLY,
-        allowNull: false,
+        allowNull: true,
       },
     })
 
