@@ -9,14 +9,14 @@ collection:
     meta:
       id: fld_214d8a7a5baa44ce916693037602acf0
       created: 1740589918137
-      modified: 1742807980409
+      modified: 1746574373601
       sortKey: -1740589918137
     children:
       - name: Auth
         meta:
           id: fld_895beefc185742b5aa3ae6f829aa17af
           created: 1742806147442
-          modified: 1742807980409
+          modified: 1746574373601
           sortKey: -1742806147442
         children:
           - url: "{{ _.BASE_URL }}/auth/login"
@@ -24,7 +24,7 @@ collection:
             meta:
               id: req_d0abe1bd7768477d9965afa43047fd0b
               created: 1740589957595
-              modified: 1742807900965
+              modified: 1744834371503
               isPrivate: false
               sortKey: -1742806150868
             method: POST
@@ -44,7 +44,8 @@ collection:
               afterResponse: >-
                 const jsonBody = insomnia.response.json();
 
-                if (jsonBody.data && jsonBody.data.user && jsonBody.data.user.token) {
+                if (jsonBody.data && jsonBody.data.user &&
+                jsonBody.data.user.token) {
                   insomnia.variables.set("token", jsonBody.data.user.token);
                   console.log("TOKEN guardado correctamente:", jsonBody.data.user.token);
                 } else {
@@ -63,13 +64,36 @@ collection:
             meta:
               id: req_f361b879bca5401d80d7ead3c29c7e76
               created: 1742806155798
-              modified: 1742806613837
+              modified: 1744582752656
               isPrivate: false
               sortKey: -1742806155798
             method: GET
             headers:
               - name: User-Agent
                 value: insomnia/11.0.0
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/auth/logout"
+            name: Logout
+            meta:
+              id: req_4490016ae4c542baadd02544fc5ad67c
+              created: 1742993822923
+              modified: 1742993909182
+              isPrivate: false
+              sortKey: -1742993822923
+            method: POST
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.0
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
             settings:
               renderRequestBody: true
               encodeUrl: true
@@ -90,13 +114,1417 @@ collection:
             meta:
               id: req_71502b9b3d8b4495b080d913d542c10b
               created: 1742806622033
-              modified: 1742808003139
+              modified: 1742993931818
               isPrivate: false
               sortKey: -1742806622033
             method: GET
             headers:
               - name: User-Agent
                 value: insomnia/11.0.0
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/users/1"
+            name: Mostrar 1 Usuario
+            meta:
+              id: req_da1806e13c6941b5bf4262371678bfc2
+              created: 1742843180740
+              modified: 1744062972542
+              isPrivate: false
+              sortKey: -1742843180741
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.0
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/users/"
+            name: Añadir Usuario
+            meta:
+              id: req_0c430601708541e394bce71c561590fc
+              created: 1742843292862
+              modified: 1744064327508
+              isPrivate: false
+              sortKey: -1742843292862
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "nombre_usuario": "nuevo_usuario",
+                  "email": "new@example.com",
+                  "password_hash": "password",
+                  "nombre": "Nuevo",
+                  "apellidos": "Usuario Ejemplo",
+                  "id_rol": 2,
+                  "activo": true
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.0
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/users/2"
+            name: Editar Usuario
+            meta:
+              id: req_466dfbcc7cbb452f8edfc37eeaabdef4
+              created: 1742843777345
+              modified: 1743431956026
+              isPrivate: false
+              sortKey: -1742843777345
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "nombre_usuario": "nuevo_usuario_editado",
+                  "email": "nuevo_usuario_editado@example.com",
+                  "password_hash": "Contraseña123456",
+                  "nombre": "Nuevo_editato",
+                  "apellidos": "Usuario Ejemplo",
+                  "id_rol": 2,
+                  "activo": true
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.0
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/users/2"
+            name: Eliminar Usuario
+            meta:
+              id: req_ebbef03276324116b8d97a580b5f9357
+              created: 1742843842130
+              modified: 1744064320682
+              isPrivate: false
+              sortKey: -1742843842130
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.0
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/users/1/status"
+            name: Editar Status Usuario
+            meta:
+              id: req_af6aa48d3a314d47b493a683b23f2da0
+              created: 1743662933926
+              modified: 1744179566414
+              isPrivate: false
+              sortKey: -1743662933927
+            method: PATCH
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"activo":false
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.1
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/users/3/reset-password"
+            name: Reset Password Usuario
+            meta:
+              id: req_a7be1baba4084b7a935d6390cbe6e135
+              created: 1744064493328
+              modified: 1744064610667
+              isPrivate: false
+              sortKey: -1744064493328
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"newPassword":"password"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Permisos
+        meta:
+          id: fld_040fa3a5abb040c9a3845a8255492a80
+          created: 1742889833622
+          modified: 1742995099956
+          sortKey: -1742889833622
+        children:
+          - url: "{{ _.BASE_URL }}/permisos"
+            name: Mostrar Permisos
+            meta:
+              id: req_53c18cdf97094556846c668714cb965d
+              created: 1742889848769
+              modified: 1742889880512
+              isPrivate: false
+              sortKey: -1742889848769
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.0
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/permisos/8"
+            name: Mostrar 1 Permiso
+            meta:
+              id: req_02f1f44b9c044ac7bbcc580bd1443021
+              created: 1742889951829
+              modified: 1744064967981
+              isPrivate: false
+              sortKey: -1742889951829
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.0
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Roles
+        meta:
+          id: fld_b2be8f67376b45b2a4dae7ac65b2d91c
+          created: 1742995105933
+          modified: 1742995105933
+          sortKey: -1742995105933
+        children:
+          - url: "{{ _.BASE_URL }}/rol"
+            name: Mostrar Todos Los Roles
+            meta:
+              id: req_2884db997182437090b1a065a8b3a460
+              created: 1742995323525
+              modified: 1743146800030
+              isPrivate: false
+              sortKey: -1742995323525
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.0
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/rol/1"
+            name: Mostrar 1 Rol
+            meta:
+              id: req_17aed287ac664534b9d38447e3b6ebdb
+              created: 1743058095936
+              modified: 1744063500399
+              isPrivate: false
+              sortKey: -1743058095936
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.0
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/rol"
+            name: Crear Rol
+            meta:
+              id: req_2b4451850dce42c4b94a80d4de943233
+              created: 1743058145565
+              modified: 1743058273231
+              isPrivate: false
+              sortKey: -1743058145565
+            method: POST
+            body:
+              mimeType: application/json
+              text: >-
+                {
+                  "nombre": "Editor",
+                  "descripcion": "Rol para editores de contenido con permisos limitados"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.0
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/rol/2/permisos"
+            name: Add Permisos Rol
+            meta:
+              id: req_cff8eab5496e4f75b880d67bb457ce07
+              created: 1743058280426
+              modified: 1744063570692
+              isPrivate: false
+              sortKey: -1743058280426
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "id_rol": 5,
+                  "permisos": [1, 3, 5, 6, 7]
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.0
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+              disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/rol/remove"
+            name: Eliminar Permiso Rol
+            meta:
+              id: req_ed721bf922794a5abf33de1bce6ac0bb
+              created: 1743058367554
+              modified: 1743058467905
+              isPrivate: false
+              sortKey: -1743058367554
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "id_rol": 5,
+                  "permisos": [7]
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.0
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/rol/mi-rol"
+            name: Mostrar Mi Rol
+            meta:
+              id: req_66818f0b386d4fd5a9b99bfdb27e1818
+              created: 1744063502892
+              modified: 1744063532212
+              isPrivate: false
+              sortKey: -1744063502892
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/rol/1"
+            name: Editar Nombre Rol
+            meta:
+              id: req_3901fed9180a431fb896381ae1c2bd7c
+              created: 1744063604135
+              modified: 1744063684994
+              isPrivate: false
+              sortKey: -1744063604135
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"nombre":"ADMIN"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Empleados
+        meta:
+          id: fld_f3bfa14a2a74428d8a2dac3b26651a87
+          created: 1743435795932
+          modified: 1743435795932
+          sortKey: -1743435795932
+        children:
+          - url: "{{ _.BASE_URL }}/empleados"
+            name: Mostrar Empleados
+            meta:
+              id: req_94f451cae2ce424691f3628d9bacc6bc
+              created: 1743435797655
+              modified: 1743435820621
+              isPrivate: false
+              sortKey: -1743435797655
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.1
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/empleados/1"
+            name: Mostrar 1 Empleado
+            meta:
+              id: req_de631a8de80c44599f7f8469d0ed2725
+              created: 1743435921020
+              modified: 1743435942963
+              isPrivate: false
+              sortKey: -1743435921020
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.1
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/empleados/add"
+            name: Añadir Empleado
+            meta:
+              id: req_14efb36a869544ea9f1f8c41944fff3b
+              created: 1743586847718
+              modified: 1743587094917
+              isPrivate: false
+              sortKey: -1743586847718
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "nombre": "Juan",
+                  "apellidos": "Pérez García",
+                  "fecha_nacimiento": "1990-05-15",
+                  "dni_nie": "12345678Z",
+                  "direccion": "Calle Principal 123, 28001 Madrid",
+                  "telefono": "600123456",
+                  "email": "juan.perez@ejemplo.com",
+                  "estado_civil": "Casado/a",
+                  "id_departamento": 1,
+                  "id_centro": 2,
+                  "puesto_actual": "Desarrollador Full Stack",
+                  "fecha_incorporacion": "2023-01-15",
+                  "activo": true
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.1
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/empleados/100"
+            name: Editar Empleado
+            meta:
+              id: req_607314c0e8bb44f680f8b6e2f22352fe
+              created: 1743587104959
+              modified: 1744096756822
+              isPrivate: false
+              sortKey: -1743587104959
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "nombre": "Juan Prueba",
+                  "apellidos": "Pérez García Prueba",
+                  "fecha_nacimiento": "1990-05-15",
+                  "dni_nie": "12345678X",
+                  "direccion": "Calle Principal 123, 28001 Madrid",
+                  "telefono": "600123456",
+                  "email": "juan.perez@ejemplo.com",
+                  "estado_civil": "Casado/a",
+                  "id_departamento": 1,
+                  "id_centro": 2,
+                  "puesto_actual": "Desarrollador Full Stack",
+                  "fecha_incorporacion": "2023-01-15",
+                  "activo": true
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.1
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/empleados/101"
+            name: Eliminar Empleado
+            meta:
+              id: req_3d6146900f9745b69e6cc966dafba4d3
+              created: 1743587246806
+              modified: 1743587332876
+              isPrivate: false
+              sortKey: -1743587246806
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.1
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/empleados/9/status"
+            name: Change Status
+            meta:
+              id: req_7b94dce5966f478c8035cbe40177cbf6
+              created: 1743587344388
+              modified: 1744068522988
+              isPrivate: false
+              sortKey: -1743587344388
+            method: PATCH
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "activo": true
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.1
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Departamentos
+        meta:
+          id: fld_2c8100ce608940ba9d45b2b0756f04ba
+          created: 1743663080308
+          modified: 1744065268713
+          sortKey: -1743663080308
+        children:
+          - url: "{{ _.BASE_URL }}/departamentos"
+            name: Mostrar Departamentos
+            meta:
+              id: req_e699bb4305c14da99a6afc6db686feb5
+              created: 1743663082296
+              modified: 1743663365230
+              isPrivate: false
+              sortKey: -1743663082296
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.1
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/departamentos/1"
+            name: Mostrar 1 Departamento
+            meta:
+              id: req_7908052e097a4edbbeaabeee4f079d5c
+              created: 1743663464957
+              modified: 1743663492253
+              isPrivate: false
+              sortKey: -1743663464957
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.1
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/departamentos/add"
+            name: Añadir Departamento
+            meta:
+              id: req_f934b0a8193e43ec864aa4bfba1248d1
+              created: 1743663537600
+              modified: 1743663600462
+              isPrivate: false
+              sortKey: -1743663537600
+            method: POST
+            body:
+              mimeType: application/json
+              text: >-
+                {
+                  "nombre": "Recursos Humanos",
+                  "descripcion": "Departamento encargado de la gestión del personal y procesos de selección",
+                  "id_centro": 1,
+                  "id_zona": 2,
+                  "activo": true,
+                  "codigo": "RRHH-001",
+                  "responsable": "Juan Pérez",
+                  "email_contacto": "rrhh@empresa.com",
+                  "telefono_contacto": "912345678",
+                  "fecha_creacion": "2025-04-03"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.1
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/departamentos/22"
+            name: Editar Departamento
+            meta:
+              id: req_845cbd06957b48dc82aa00877d4b15c0
+              created: 1743663616222
+              modified: 1743663711212
+              isPrivate: false
+              sortKey: -1743663616222
+            method: PUT
+            body:
+              mimeType: application/json
+              text: >-
+                {
+                  "nombre": "Recursos Humanos EDITADO",
+                  "descripcion": "Departamento encargado de la gestión del personal y procesos de selección EDITADO",
+                  "id_centro": 1,
+                  "id_zona": 2,
+                  "activo": true,
+                  "codigo": "RRHH-001",
+                  "responsable": "Juan Pérez",
+                  "email_contacto": "rrhh@empresa.com",
+                  "telefono_contacto": "912345678",
+                  "fecha_creacion": "2025-04-03"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.1
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/departamentos/22"
+            name: Eliminar Departamento
+            meta:
+              id: req_6a5c0eee84144c31a767ccdcee4dfc5f
+              created: 1743663728457
+              modified: 1743663761296
+              isPrivate: false
+              sortKey: -1743663728457
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.1
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/departamentos/1"
+            name: Change Status
+            meta:
+              id: req_101b652ca54948efa52ad9408b4d1ee4
+              created: 1744065028522
+              modified: 1744065130471
+              isPrivate: false
+              sortKey: -1744065028522
+            method: PATCH
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"activo":true
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Zonas
+        meta:
+          id: fld_59547238760f4d699670eecb4958bdee
+          created: 1744048832762
+          modified: 1744048832762
+          sortKey: -1744048832762
+        children:
+          - url: "{{ _.BASE_URL }}/zonas"
+            name: Mostrar Zonas
+            meta:
+              id: req_dcc662e1a1c4498ab0814f79c38403af
+              created: 1744048845341
+              modified: 1744065156719
+              isPrivate: false
+              sortKey: -1744048845341
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/zonas/1"
+            name: Mostrar 1 Zona
+            meta:
+              id: req_30a00e83f9e047ca9048fed89b7439c5
+              created: 1744065269731
+              modified: 1744065293975
+              isPrivate: false
+              sortKey: -1744065269731
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/zonas"
+            name: Añadir Zona
+            meta:
+              id: req_97730ee2ab894bba87a436e305ec8d87
+              created: 1744611122905
+              modified: 1744611330993
+              isPrivate: false
+              sortKey: -1744611122905
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"nombre":"Zona Prueba",
+                	"descripcion":"Prueba"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/zonas/6"
+            name: Editar Zona
+            meta:
+              id: req_5628c7eeaa884074b753f1e11f623cca
+              created: 1744611142633
+              modified: 1744611707144
+              isPrivate: false
+              sortKey: -1744611142633
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"nombre":"Zona Prueba Editada",
+                	"descripcion":"Prueba"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/zonas/6"
+            name: Eliminar Zona
+            meta:
+              id: req_4e364e50060e4be49c85d02340ea7ac0
+              created: 1744611194071
+              modified: 1744612890989
+              isPrivate: false
+              sortKey: -1744611194071
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Centros
+        meta:
+          id: fld_38fe1f7221da4e6eb5871bde15e71c70
+          created: 1744065216702
+          modified: 1744110484044
+          sortKey: -1744065216702
+        children:
+          - url: "{{ _.BASE_URL }}/centros"
+            name: Mostrar Centros
+            meta:
+              id: req_89f23ac5083749e7af25a6fc09b49e37
+              created: 1744065219869
+              modified: 1744065242138
+              isPrivate: false
+              sortKey: -1744065219869
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/centros/1"
+            name: Mostrar 1 Centro
+            meta:
+              id: req_077222f33d4f4728a5d21c24d25a1eb8
+              created: 1744065300646
+              modified: 1744065330789
+              isPrivate: false
+              sortKey: -1744065300646
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/centros"
+            name: Añadir Centro
+            meta:
+              id: req_a05483fe1b844b49bfb0387d9e35ff01
+              created: 1744611207486
+              modified: 1744613399105
+              isPrivate: false
+              sortKey: -1744611207486
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"id_zona":"1",
+                	"nombre":"Prueba Centro",
+                	"direccion":"Prueba Direccion"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/centros/6"
+            name: Editar Centro
+            meta:
+              id: req_4e5221e2c3b247988b244f40f3fea36e
+              created: 1744611226275
+              modified: 1744613446264
+              isPrivate: false
+              sortKey: -1744611226275
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"nombre":"Prueba Centro Editado"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/centros/6"
+            name: Eliminar Centro
+            meta:
+              id: req_96e1872e19dd452fb7afca640b002c28
+              created: 1744611239496
+              modified: 1744613471228
+              isPrivate: false
+              sortKey: -1744611239497
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Documentos
+        meta:
+          id: fld_892eddd7e0de44118333db2a317cdb58
+          created: 1744281307220
+          modified: 1744281307220
+          sortKey: -1744281307220
+        children:
+          - url: "{{ _.BASE_URL }}/documentos"
+            name: Mostrar Documentos
+            meta:
+              id: req_0a6b1e46935e4e99a577d1851cfd40fb
+              created: 1744281309367
+              modified: 1744281338539
+              isPrivate: false
+              sortKey: -1744281309367
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/documentos/499"
+            name: Mostrar 1 Documento
+            meta:
+              id: req_8775d39aca89403c93a37571c4e66ac2
+              created: 1744281633536
+              modified: 1744614912082
+              isPrivate: false
+              sortKey: -1744281633536
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/documentos/tipo/Nómina"
+            name: Mostrar Por Tipo
+            meta:
+              id: req_df1ec74c174843ef95a79611a1dcdec4
+              created: 1744613543505
+              modified: 1744613692788
+              isPrivate: false
+              sortKey: -1744613543505
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/documentos/download/1"
+            name: Descargar Documento
+            meta:
+              id: req_2858f89d001148b8bf00f4148df5677a
+              created: 1744613648059
+              modified: 1744613695856
+              isPrivate: false
+              sortKey: -1744613648059
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/documentos/preview/1"
+            name: Preview Documento
+            meta:
+              id: req_9c68fb56514f4cfa85431ae1f4909b0e
+              created: 1744613705642
+              modified: 1744613733885
+              isPrivate: false
+              sortKey: -1744613705642
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/documentos/upload"
+            name: Subir Documento
+            meta:
+              id: req_91fd64687dc74cb785eab083c48eb5c0
+              created: 1744613745796
+              modified: 1744614643569
+              isPrivate: false
+              sortKey: -1744613745796
+            method: POST
+            body:
+              mimeType: multipart/form-data
+              params:
+                - id: pair_3381a16725464f529f8ba92cdc8b00b7
+                  name: id_empleado
+                  value: "1"
+                  disabled: false
+                - id: pair_5264fc8bc03e44eaa2b3831807789353
+                  name: tipo_documento
+                  value: contrato
+                  disabled: false
+                - id: pair_2e5eeb66a4dd440f899a8718b803ce8e
+                  name: archivo
+                  disabled: false
+                  type: file
+                  fileName: C:\Users\carlo\Downloads\justificante.pdf
+            headers:
+              - name: Content-Type
+                value: multipart/form-data
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/documentos/499"
+            name: Actualizar Documento Sin Documento
+            meta:
+              id: req_47e4ed9fd31e42a4911472d330b60a10
+              created: 1744614829048
+              modified: 1744614924398
+              isPrivate: false
+              sortKey: -1744614829048
+            method: PUT
+            body:
+              mimeType: application/json
+              text: >-
+                {
+                  "tipo_documento": "contrato_actualizado",
+                  "observaciones": "Documento actualizado sin cambiar el archivo"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/documentos/with-file/499"
+            name: Actualizar Documento Nuevo Documento
+            meta:
+              id: req_d825485bdf304f37aab2bb34ce4cc92d
+              created: 1744614933023
+              modified: 1744615052898
+              isPrivate: false
+              sortKey: -1744614933023
+            method: PUT
+            body:
+              mimeType: multipart/form-data
+              params:
+                - id: pair_b36780bc771a4d0594a25571c2d81156
+                  name: id_empleado
+                  value: "1"
+                  disabled: false
+                - id: pair_2b4504d7a7744f9596cba05cf7a3050b
+                  name: tipo_documento
+                  value: Contrato Renovado
+                  disabled: false
+                - id: pair_efa5064faef941d187b72012fdbdfdd4
+                  name: observaciones
+                  value: Preuba2222
+                  disabled: false
+                - id: pair_b907bea112ba40bc9aea7e72162a2e3a
+                  name: archivo
+                  disabled: false
+                  type: file
+                  fileName: C:\Users\carlo\Downloads\Markdown to PDF.pdf
+            headers:
+              - name: Content-Type
+                value: multipart/form-data
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.BASE_URL }}/documentos/500"
+            name: Eliminar Dcomuento
+            meta:
+              id: req_0d7bf55e82694d579a807099c7f69027
+              created: 1744615094345
+              modified: 1744615118446
+              isPrivate: false
+              sortKey: -1744615094345
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.2
+            authentication:
+              type: bearer
+              token: "{{ _.TOKEN }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Ausencias
+        meta:
+          id: fld_bcc58a150bfa45cea3457396b857fd0a
+          created: 1745491731648
+          modified: 1745491731648
+          sortKey: -1745491731648
+        children:
+          - url: "{{ _.BASE_URL }}/ausencias"
+            name: Create Ausencia
+            meta:
+              id: req_9b51eb952b2848d78db6d7fe527f966e
+              created: 1746181336581
+              modified: 1746182211604
+              isPrivate: false
+              sortKey: -1746181336581
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"id_ausencia":6,
+                	"fecha_inicio":"2025-05-01",
+                	"fecha_fin":"2025-05-02",
+                	"id_empleado":"15",
+                	"id_tipo_ausencia":6
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.2
             authentication:
               type: bearer
               token: "{{ _.TOKEN }}"
@@ -128,6 +1556,29 @@ collection:
             send: true
             store: true
           rebuildPath: true
+      - url: "{{ _.BASE_URL }}/contratos/empleado/25"
+        name: New Request
+        meta:
+          id: req_895c18eb16d64412862fb9a18cd0edc5
+          created: 1746574377013
+          modified: 1746574426384
+          isPrivate: false
+          sortKey: -1746574377013
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.0.2
+        authentication:
+          type: bearer
+          token: "{{ _.TOKEN }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
     environment:
       BASE_URL: http://localhost:3000/api
       TOKEN: "{% response 'body', 'req_d0abe1bd7768477d9965afa43047fd0b',
@@ -141,11 +1592,11 @@ cookieJar:
   meta:
     id: jar_c4e2403ca0b14913859ef4854d3f5b81
     created: 1740589897772
-    modified: 1742807980406
+    modified: 1746574373598
 environments:
   name: Base Environment
   meta:
     id: env_ce16ab3609224d3494c2744a55481834
     created: 1740589897768
-    modified: 1742807980408
+    modified: 1746574373600
     isPrivate: false
