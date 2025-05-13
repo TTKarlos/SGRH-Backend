@@ -11,6 +11,11 @@ const ausenciaRepository = require("./ausencia.repository")
 const tipoAusenciaRepository = require("./tipoAusencia.repository")
 const formacionEmpleadoRepository = require("./formacionEmpleado.repository")
 const documentoRepository = require("./documento.repository")
+const contratoRepository = require("./contrato.repository")
+const tipoContratoRepository = require("./tipoContrato.repository")
+const convenioRepository = require("./convenio.repository")
+const categoriaConvenioRepository = require("./categoriaConvenio.repository")
+const empresaRepository = require("./empresa.repository")
 
 class ApiRouter {
     constructor() {
@@ -31,6 +36,11 @@ class ApiRouter {
         this.router.use("/tipos-ausencia", tipoAusenciaRepository.getRoutes())
         this.router.use("/formaciones", formacionEmpleadoRepository.getRoutes())
         this.router.use("/documentos", documentoRepository.getRoutes())
+        this.router.use("/contratos", contratoRepository.getRoutes())
+        this.router.use("/tipos-contrato", tipoContratoRepository.getRoutes())
+        this.router.use("/convenios", convenioRepository.getRoutes())
+        this.router.use("/categorias-convenio", categoriaConvenioRepository.getRoutes())
+        this.router.use("/empresas", empresaRepository.getRoutes())
 
         this.router.get("/", (req, res) => {
             res.json({

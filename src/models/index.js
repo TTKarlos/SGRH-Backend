@@ -10,6 +10,11 @@ const TipoAusencia = require("./TipoAusencia")
 const Ausencia = require("./Ausencia")
 const FormacionEmpleado = require("./FormacionEmpleado")
 const Documento = require("./Documento")
+const TipoContrato = require("./TipoContrato")
+const Contrato = require("./Contrato")
+const Empresa = require("./Empresa")
+const Convenio = require("./Convenio")
+const CategoriaConvenio = require("./CategoriaConvenio")
 const sequelize = require("../config/database")
 const { Sequelize } = require("sequelize")
 
@@ -52,6 +57,24 @@ FormacionEmpleado.belongsTo(Empleado, { foreignKey: "id_empleado" })
 Empleado.hasMany(Documento, { foreignKey: "id_empleado" })
 Documento.belongsTo(Empleado, { foreignKey: "id_empleado" })
 
+TipoContrato.hasMany(Contrato, { foreignKey: "id_tipo_contrato" })
+Contrato.belongsTo(TipoContrato, { foreignKey: "id_tipo_contrato" })
+
+Empleado.hasMany(Contrato, { foreignKey: "id_empleado" })
+Contrato.belongsTo(Empleado, { foreignKey: "id_empleado" })
+
+Empresa.hasMany(Contrato, { foreignKey: "id_empresa" })
+Contrato.belongsTo(Empresa, { foreignKey: "id_empresa" })
+
+Convenio.hasMany(Contrato, { foreignKey: "id_convenio" })
+Contrato.belongsTo(Convenio, { foreignKey: "id_convenio" })
+
+CategoriaConvenio.hasMany(Contrato, { foreignKey: "id_categoria" })
+Contrato.belongsTo(CategoriaConvenio, { foreignKey: "id_categoria" })
+
+Convenio.hasMany(CategoriaConvenio, { foreignKey: "id_convenio" })
+CategoriaConvenio.belongsTo(Convenio, { foreignKey: "id_convenio" })
+
 const Op = Sequelize.Op
 
 module.exports = {
@@ -68,5 +91,10 @@ module.exports = {
     Ausencia,
     FormacionEmpleado,
     Documento,
+    TipoContrato,
+    Contrato,
+    Empresa,
+    Convenio,
+    CategoriaConvenio,
     Op,
 }
