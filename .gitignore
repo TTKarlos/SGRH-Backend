@@ -134,4 +134,5 @@ dist
 .idea/
 
 /database/uploads/*
+/uploads
 
