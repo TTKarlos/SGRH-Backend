@@ -34,11 +34,7 @@ Permiso.belongsToMany(Rol, {
     otherKey: "id_rol",
 })
 
-// Relaciones Empresa - Zona
-Empresa.hasMany(Zona, { foreignKey: "id_empresa" })
-Zona.belongsTo(Empresa, { foreignKey: "id_empresa" })
-
-// Relaciones Zona - Centro
+// Relaciones Zona - Centro (manteniendo la estructura original)
 Zona.hasMany(Centro, { foreignKey: "id_zona" })
 Centro.belongsTo(Zona, { foreignKey: "id_zona" })
 
