@@ -12,6 +12,7 @@ class EmpresaRepository {
     }
 
     setupRoutes() {
+        this.router.get("/count", auth, empresaController.count)
         this.router.get("/", auth, empresaController.getAll)
         this.router.get("/:id", auth, empresaController.getById)
         this.router.post("/", auth, isAdmin, validateRequest(createEmpresaSchema), empresaController.create)

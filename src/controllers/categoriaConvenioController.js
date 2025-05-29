@@ -27,7 +27,7 @@ const categoriaConvenioController = {
             include: [
                 {
                     model: Convenio,
-                    attributes: ["id_convenio", "nombre", "numero_convenio"],
+                    attributes: ["id_convenio", "nombre"],
                 },
             ],
         }
@@ -42,6 +42,57 @@ const categoriaConvenioController = {
         )
     }),
 
+    getByConvenio: asyncHandler(async (req, res) => {
+        try {
+            const { idConvenio } = req.params
+
+            if (!idConvenio || isNaN(Number.parseInt(idConvenio, 10))) {
+                throw new AppError("ID de convenio inválido", 400)
+            }
+
+            const convenio = await Convenio.findByPk(idConvenio)
+            if (!convenio) {
+                throw new AppError(`Convenio con ID ${idConvenio} no encontrado`, 404)
+            }
+
+            const categorias = await CategoriaConvenio.findAll({
+                where: { id_convenio: idConvenio },
+                order: [["nombre", "ASC"]],
+                include: [
+                    {
+                        model: Convenio,
+                        attributes: ["id_convenio", "nombre"],
+                    },
+                ],
+            })
+
+            return res.status(200).json(
+                createResponse(true, `Categorías del convenio ${convenio.nombre} obtenidas correctamente`, {
+                    categorias,
+                    convenio: {
+                        id_convenio: convenio.id_convenio,
+                        nombre: convenio.nombre,
+                    },
+                }),
+            )
+        } catch (error) {
+            console.error("Error en getByConvenio:", error)
+            if (error instanceof AppError) {
+                return res.status(error.statusCode).json(createResponse(false, error.message, null, error.statusCode))
+            }
+            return res.status(500).json(
+                createResponse(
+                    false,
+                    "Error interno del servidor al obtener categorías",
+                    {
+                        error: error.message,
+                    },
+                    500,
+                ),
+            )
+        }
+    }),
+
     getById: asyncHandler(async (req, res) => {
         const { id } = req.params
 
@@ -53,7 +104,7 @@ const categoriaConvenioController = {
             include: [
                 {
                     model: Convenio,
-                    attributes: ["id_convenio", "nombre", "numero_convenio"],
+                    attributes: ["id_convenio", "nombre"],
                 },
             ],
         })
@@ -63,21 +114,21 @@ const categoriaConvenioController = {
         }
 
         const contratosCount = await Contrato.count({
-            where: { id_categoria: id }
+            where: { id_categoria: id },
         })
 
         return res.status(200).json(
             createResponse(true, "Categoría de convenio obtenida correctamente", {
                 categoria,
                 estadisticas: {
-                    contratos: contratosCount
-                }
+                    contratos: contratosCount,
+                },
             }),
         )
     }),
 
     create: asyncHandler(async (req, res) => {
-        const { id_convenio, nombre } = req.body
+        const { id_convenio, nombre, descripcion } = req.body
 
         validateFields(["id_convenio", "nombre"], req.body)
 
@@ -89,8 +140,8 @@ const categoriaConvenioController = {
         const categoriaExistente = await CategoriaConvenio.findOne({
             where: {
                 id_convenio,
-                nombre
-            }
+                nombre,
+            },
         })
 
         if (categoriaExistente) {
@@ -100,25 +151,28 @@ const categoriaConvenioController = {
         const nuevaCategoria = await CategoriaConvenio.create({
             id_convenio,
             nombre,
+            descripcion,
         })
 
         const categoriaConRelaciones = await CategoriaConvenio.findByPk(nuevaCategoria.id_categoria, {
             include: [
                 {
                     model: Convenio,
-                    attributes: ["id_convenio", "nombre", "numero_convenio"],
+                    attributes: ["id_convenio", "nombre"],
                 },
             ],
         })
 
-        return res.status(201).json(
-            createResponse(true, "Categoría de convenio creada correctamente", { categoria: categoriaConRelaciones }, 201)
-        )
+        return res
+            .status(201)
+            .json(
+                createResponse(true, "Categoría de convenio creada correctamente", { categoria: categoriaConRelaciones }, 201),
+            )
     }),
 
     update: asyncHandler(async (req, res) => {
         const { id } = req.params
-        const { id_convenio, nombre } = req.body
+        const { id_convenio, nombre, descripcion } = req.body
 
         if (!id || isNaN(Number.parseInt(id, 10))) {
             throw new AppError("ID de categoría inválido", 400)
@@ -142,8 +196,8 @@ const categoriaConvenioController = {
                 where: {
                     id_convenio: id_convenio || categoria.id_convenio,
                     nombre: nombre || categoria.nombre,
-                    id_categoria: { [Op.ne]: id }
-                }
+                    id_categoria: { [Op.ne]: id },
+                },
             })
 
             if (categoriaExistente) {
@@ -151,7 +205,7 @@ const categoriaConvenioController = {
             }
         }
 
-        const updateData = buildUpdateObject(req.body, ["id_convenio", "nombre"])
+        const updateData = buildUpdateObject(req.body, ["id_convenio", "nombre", "descripcion"])
 
         await categoria.update(updateData)
 
@@ -159,14 +213,16 @@ const categoriaConvenioController = {
             include: [
                 {
                     model: Convenio,
-                    attributes: ["id_convenio", "nombre", "numero_convenio"],
+                    attributes: ["id_convenio", "nombre","descripcion"],
                 },
             ],
         })
 
-        return res.status(200).json(
-            createResponse(true, "Categoría de convenio actualizada correctamente", { categoria: categoriaActualizada })
-        )
+        return res
+            .status(200)
+            .json(
+                createResponse(true, "Categoría de convenio actualizada correctamente", { categoria: categoriaActualizada }),
+            )
     }),
 
     delete: asyncHandler(async (req, res) => {
@@ -183,7 +239,7 @@ const categoriaConvenioController = {
         }
 
         const contratosAsociados = await Contrato.count({
-            where: { id_categoria: id }
+            where: { id_categoria: id },
         })
 
         if (contratosAsociados > 0) {

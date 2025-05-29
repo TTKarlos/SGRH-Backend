@@ -212,7 +212,15 @@ const centroController = {
         return res.status(200).json(createResponse(true, "Centro eliminado correctamente"))
     }),
 
+    count: asyncHandler(async (req, res) => {
+        const totalCentros = await Centro.count();
+
+        return res.status(200).json(
+            createResponse(true, "Total de centros obtenido correctamente", {
+                total: totalCentros
+            })
+        );
+    }),
 }
 
 module.exports = centroController
-

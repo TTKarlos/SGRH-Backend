@@ -17,6 +17,8 @@ class ContratoRepository {
         this.router.get("/download/:id", auth, contratoController.download)
         this.router.get("/preview/:id", auth, contratoController.preview)
 
+        this.router.get("/proximos-a-vencer", auth, contratoController.getProximosAVencer)
+
         this.router.post("/upload/:id", auth, isAdmin, upload.single("archivo"), contratoController.upload)
 
         this.router.get("/", auth, contratoController.getAll)

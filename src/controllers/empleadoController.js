@@ -54,6 +54,82 @@ const empleadoController = {
         )
     }),
 
+    getAllWithoutPagination: asyncHandler(async (req, res) => {
+        const search = req.query.search || ""
+        const activo = req.query.activo !== undefined ? req.query.activo === "true" : null
+        const id_departamento = req.query.id_departamento || null
+        const id_centro = req.query.id_centro || null
+        const order = req.query.order || "ASC"
+        const orderBy = req.query.orderBy || "apellidos"
+
+        let whereClause = {}
+
+        if (search) {
+            whereClause = buildSearchClause(search, ["nombre", "apellidos", "dni_nie", "email"])
+        }
+
+        const filtros = buildFilterClause({
+            activo,
+            id_departamento,
+            id_centro,
+        })
+
+        whereClause = { ...whereClause, ...filtros }
+
+        const empleados = await Empleado.findAll({
+            where: whereClause,
+            order: [[orderBy, order]],
+            include: [
+                {
+                    model: Departamento,
+                    attributes: ["id_departamento", "nombre"],
+                    required: false,
+                },
+                {
+                    model: Centro,
+                    attributes: ["id_centro", "nombre"],
+                    required: false,
+                },
+            ],
+        })
+
+        return res.status(200).json(
+            createResponse(true, "Empleados obtenidos correctamente", {
+                empleados,
+                total: empleados.length,
+            }),
+        )
+    }),
+
+    getCount: asyncHandler(async (req, res) => {
+        const search = req.query.search || ""
+        const activo = req.query.activo !== undefined ? req.query.activo === "true" : null
+        const id_departamento = req.query.id_departamento || null
+        const id_centro = req.query.id_centro || null
+
+        let whereClause = {}
+
+        if (search) {
+            whereClause = buildSearchClause(search, ["nombre", "apellidos", "dni_nie", "email"])
+        }
+
+        const filtros = buildFilterClause({
+            activo,
+            id_departamento,
+            id_centro,
+        })
+
+        whereClause = { ...whereClause, ...filtros }
+
+        const count = await Empleado.count({ where: whereClause })
+
+        return res.status(200).json(
+            createResponse(true, "Conteo de empleados obtenido correctamente", {
+                total: count,
+            }),
+        )
+    }),
+
     getById: asyncHandler(async (req, res) => {
         const { id } = req.params
 
@@ -282,9 +358,6 @@ const empleadoController = {
             }),
         )
     }),
-
-
 }
 
 module.exports = empleadoController
-

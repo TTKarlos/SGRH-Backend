@@ -13,6 +13,7 @@ class DocumentoRepository {
     }
 
     setupRoutes() {
+        this.router.get("/count", auth, documentoController.count)
         this.router.get("/download/:id", auth, documentoController.download)
         this.router.get("/preview/:id", auth, documentoController.preview)
 

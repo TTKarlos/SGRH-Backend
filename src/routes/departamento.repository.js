@@ -16,7 +16,6 @@ class DepartamentoRepository {
     }
 
     setupRoutes() {
-        // Rutas para departamentos
         this.router.get("/", auth, departamentoController.getAll)
         this.router.get("/:id", auth, departamentoController.getById)
         this.router.post("/", auth, isAdmin, validateRequest(createDepartamentoSchema), departamentoController.create)

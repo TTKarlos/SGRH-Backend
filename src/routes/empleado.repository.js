@@ -13,6 +13,7 @@ class EmpleadoRepository {
 
     setupRoutes() {
         this.router.get("/", auth, empleadoController.getAll)
+        this.router.get("/count", auth, empleadoController.getCount)
         this.router.get("/:id", auth, empleadoController.getById)
         this.router.post("/", auth, validateRequest(createEmpleadoSchema), empleadoController.create)
         this.router.put("/:id", auth, validateRequest(updateEmpleadoSchema), empleadoController.update)

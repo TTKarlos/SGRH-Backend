@@ -145,6 +145,16 @@ const empresaController = {
 
         return res.status(200).json(createResponse(true, "Empresa eliminada correctamente"))
     }),
+
+    count: asyncHandler(async (req, res) => {
+        const totalEmpresas = await Empresa.count()
+
+        return res.status(200).json(
+            createResponse(true, "Total de empresas obtenido correctamente", {
+                total: totalEmpresas
+            })
+        )
+    }),
 }
 
 module.exports = empresaController

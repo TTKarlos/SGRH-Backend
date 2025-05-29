@@ -13,6 +13,9 @@ const createTipoContratoSchema = yup.object().shape({
         .required("El código del tipo de contrato es requerido")
         .min(1, "El código debe tener al menos 1 caracter")
         .max(20, "El código no puede exceder los 20 caracteres"),
+
+    descripcion: yup
+    .string()
 })
 
 // Esquema para actualizar un tipo de contrato
@@ -26,6 +29,9 @@ const updateTipoContratoSchema = yup.object().shape({
         .string()
         .min(1, "El código debe tener al menos 1 caracter")
         .max(20, "El código no puede exceder los 20 caracteres"),
+
+    descripcion: yup
+        .string()
 })
 
 module.exports = {

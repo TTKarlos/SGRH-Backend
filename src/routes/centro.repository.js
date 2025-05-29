@@ -12,6 +12,7 @@ class CentroRepository {
     }
 
     setupRoutes() {
+        this.router.get("/count", auth, centroController.count)
         this.router.get("/", auth, centroController.getAll)
         this.router.get("/:id", auth, centroController.getById)
         this.router.post("/", auth, isAdmin, validateRequest(createCentroSchema), centroController.create)

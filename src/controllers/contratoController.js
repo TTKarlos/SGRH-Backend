@@ -611,6 +611,101 @@ const contratoController = {
         })
         fileStream.pipe(res)
     }),
+
+    getProximosAVencer: asyncHandler(async (req, res) => {
+        try {
+            const diasLimite = parseInt(req.query.dias || 90, 10)
+            const id_empresa = req.query.id_empresa || null
+            const id_tipo_contrato = req.query.id_tipo_contrato || null
+            const id_empleado = req.query.id_empleado || null
+            const order = req.query.order || "ASC"
+            const orderBy = req.query.orderBy || "fecha_fin"
+
+            const fechaActual = new Date()
+            const fechaLimite = new Date()
+            fechaLimite.setDate(fechaLimite.getDate() + diasLimite)
+
+            let whereClause = {}
+
+            whereClause.fecha_fin = {
+                [Op.ne]: null,
+                [Op.gt]: fechaActual,
+                [Op.lte]: fechaLimite
+            }
+
+            if (id_empresa) {
+                whereClause.id_empresa = id_empresa
+            }
+
+            if (id_tipo_contrato) {
+                whereClause.id_tipo_contrato = id_tipo_contrato
+            }
+
+            if (id_empleado) {
+                whereClause.id_empleado = id_empleado
+            }
+
+            const options = {
+                where: whereClause,
+                order: [[orderBy, order]],
+                include: [
+                    {
+                        model: Empleado,
+                        attributes: ["id_empleado", "nombre", "apellidos", "dni_nie"],
+                    },
+                    {
+                        model: TipoContrato,
+                        attributes: ["id_tipo_contrato", "nombre", "codigo"],
+                    },
+                    {
+                        model: Empresa,
+                        attributes: ["id_empresa", "nombre", "cif"],
+                    },
+                    {
+                        model: Convenio,
+                        attributes: ["id_convenio", "nombre"],
+                        required: false,
+                    },
+                    {
+                        model: CategoriaConvenio,
+                        attributes: ["id_categoria", "nombre"],
+                        required: false,
+                    },
+                ],
+            }
+
+            const { data: contratos, pagination } = await paginate(Contrato, req, options)
+
+            const contratosConDiasRestantes = contratos.map(contrato => {
+                const fechaFin = new Date(contrato.fecha_fin)
+                const diasRestantes = Math.ceil((fechaFin - fechaActual) / (1000 * 60 * 60 * 24))
+
+                const contratoPlano = { ...contrato.dataValues, diasRestantes }
+
+                return contratoPlano
+            })
+
+            const estadisticas = {
+                total: contratosConDiasRestantes.length,
+                proximaSemana: contratosConDiasRestantes.filter(c => c.diasRestantes <= 7).length,
+                proximoMes: contratosConDiasRestantes.filter(c => c.diasRestantes <= 30).length,
+                proximosTresMeses: contratosConDiasRestantes.filter(c => c.diasRestantes <= 90).length
+            }
+
+            return res.status(200).json(
+                createResponse(true, "Contratos próximos a vencer obtenidos correctamente", {
+                    contratos: contratosConDiasRestantes,
+                    pagination,
+                    estadisticas
+                })
+            )
+        } catch (error) {
+            console.error("Error en getProximosAVencer:", error)
+            return res.status(500).json(
+                createResponse(false, "Error al obtener contratos próximos a vencer: " + error.message, null, 500)
+            )
+        }
+    })
 }
 
 module.exports = contratoController

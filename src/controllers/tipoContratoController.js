@@ -59,9 +59,9 @@ const tipoContratoController = {
     }),
 
     create: asyncHandler(async (req, res) => {
-        const { nombre, codigo } = req.body
+        const { nombre, codigo, descripcion } = req.body
 
-        validateFields(["nombre", "codigo"], req.body)
+        validateFields(["nombre", "codigo", "descripcion"], req.body)
 
         const tipoExistente = await TipoContrato.findOne({
             where: { codigo }
@@ -74,6 +74,7 @@ const tipoContratoController = {
         const nuevoTipoContrato = await TipoContrato.create({
             nombre,
             codigo,
+            descripcion,
         })
 
         return res.status(201).json(
@@ -108,7 +109,7 @@ const tipoContratoController = {
             }
         }
 
-        const updateData = buildUpdateObject(req.body, ["nombre", "codigo"])
+        const updateData = buildUpdateObject(req.body, ["nombre", "codigo", "descripcion"])
 
         await tipoContrato.update(updateData)
 

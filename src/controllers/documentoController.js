@@ -7,6 +7,16 @@ const fs = require("fs-extra")
 const path = require("path")
 
 const documentoController = {
+    count: asyncHandler(async (req, res) => {
+        const totalDocumentos = await Documento.count();
+
+        return res.status(200).json(
+            createResponse(true, "Total de documentos obtenido correctamente", {
+                total: totalDocumentos
+            })
+        );
+    }),
+
     getAll: asyncHandler(async (req, res) => {
         const search = req.query.search || ""
         const id_empleado = req.query.id_empleado || null

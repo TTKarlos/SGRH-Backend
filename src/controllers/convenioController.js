@@ -13,7 +13,7 @@ const convenioController = {
         let whereClause = {}
 
         if (search) {
-            whereClause = buildSearchClause(search, ["nombre", "numero_convenio"])
+            whereClause = buildSearchClause(search, ["nombre", "numero_convenio","codigo"])
         }
 
         const options = {
@@ -42,7 +42,7 @@ const convenioController = {
             include: [
                 {
                     model: CategoriaConvenio,
-                    attributes: ["id_categoria", "nombre"],
+                    attributes: ["id_categoria", "nombre", "codigo"],
                 },
             ],
         })
