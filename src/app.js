@@ -23,10 +23,6 @@ app.use(morgan("dev"))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
-const uploadsDir = path.join(__dirname, "uploads")
-fs.ensureDirSync(uploadsDir)
-fs.ensureDirSync(path.join(uploadsDir, "documentos"))
-fs.ensureDirSync(path.join(uploadsDir, "documentos", "empleados"))
 
 checkUploadDirectory()
     .then((isValid) => {
