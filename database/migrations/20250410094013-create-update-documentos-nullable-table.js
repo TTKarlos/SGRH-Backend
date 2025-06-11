@@ -3,7 +3,6 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     const tables = await queryInterface.showAllTables()
     if (!tables.includes("documentos")) {
-      console.log("La tabla documentos no existe, omitiendo migración")
       return
     }
 
@@ -33,7 +32,6 @@ module.exports = {
           unique: false,
         })
         .catch((err) => {
-          console.log("Índice idx_documentos_empleado ya existe o no se pudo crear")
         })
 
     await queryInterface
@@ -42,7 +40,6 @@ module.exports = {
           unique: false,
         })
         .catch((err) => {
-          console.log("Índice idx_documentos_tipo ya existe o no se pudo crear")
         })
   },
 

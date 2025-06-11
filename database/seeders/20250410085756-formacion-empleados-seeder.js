@@ -6,7 +6,6 @@ module.exports = {
     })
 
     if (empleados.length === 0) {
-      console.log("No hay empleados para crear formaciones de ejemplo")
       return
     }
 

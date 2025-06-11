@@ -7,7 +7,6 @@ const path = require('path');
 module.exports = {
   async up(queryInterface, Sequelize) {
     if (process.env.NODE_ENV === 'production') {
-      console.log('⚠️ No se crearán datos de ejemplo en entorno de producción');
       return;
     }
 
@@ -17,7 +16,6 @@ module.exports = {
     );
 
     if (empleados.length === 0) {
-      console.log('⚠️ No hay empleados para crear contratos');
       return;
     }
 
@@ -27,7 +25,6 @@ module.exports = {
     );
 
     if (tiposContrato.length === 0) {
-      console.log('⚠️ No hay tipos de contrato disponibles');
       return;
     }
 
@@ -37,7 +34,6 @@ module.exports = {
     );
 
     if (empresas.length === 0) {
-      console.log('⚠️ No hay empresas disponibles');
       return;
     }
 
@@ -64,12 +60,11 @@ module.exports = {
     }
 
     const uploadPath = process.env.NODE_ENV === 'production'
-        ? process.env.PROD_UPLOAD_PATH || './uploads/contratos'
-        : process.env.DEV_UPLOAD_PATH || './uploads/contratos';
+        ? process.env.PROD_UPLOAD_CONTRATOS_PATH
+        : process.env.DEV_UPLOAD_CONTRATOS_PATH;
 
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
-      console.log(`✅ Creado directorio para archivos: ${uploadPath}`);
     }
 
     const contratos = [];
@@ -135,7 +130,6 @@ module.exports = {
         tamano = faker.number.int({ min: 50000, max: 2000000 });
 
         fs.writeFileSync(rutaArchivo, 'Contenido simulado del contrato');
-        console.log(`✅ Creado archivo de contrato simulado: ${rutaArchivo}`);
       }
 
       contratos.push({
@@ -157,7 +151,6 @@ module.exports = {
     }
 
     await queryInterface.bulkInsert('contratos', contratos, {});
-    console.log(`✅ Creados ${contratos.length} contratos de ejemplo`);
   },
 
   async down(queryInterface, Sequelize) {

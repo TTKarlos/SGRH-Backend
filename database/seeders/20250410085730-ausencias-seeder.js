@@ -6,7 +6,6 @@ module.exports = {
     })
 
     if (empleados.length === 0) {
-      console.log("No hay empleados para crear ausencias de ejemplo")
       return
     }
 
@@ -15,7 +14,6 @@ module.exports = {
     })
 
     if (tiposAusencia.length === 0) {
-      console.log("No hay tipos de ausencia para crear ausencias de ejemplo")
       return
     }
 

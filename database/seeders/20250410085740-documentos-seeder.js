@@ -5,9 +5,9 @@ require("dotenv").config()
 const getUploadPath = () => {
   const env = process.env.NODE_ENV || 'development'
   if (env === 'production') {
-    return process.env.PROD_UPLOAD_PATH || '/var/www/sgrh/documentos/empleados'
+    return process.env.PROD_UPLOAD_PATH
   } else {
-    return process.env.DEV_UPLOAD_PATH || path.join(__dirname, "../uploads/documentos/empleados")
+    return process.env.DEV_UPLOAD_PATH
   }
 }
 
@@ -19,7 +19,6 @@ module.exports = {
     })
 
     if (empleados.length === 0) {
-      console.log("No hay empleados para crear documentos de ejemplo")
       return
     }
 
@@ -95,7 +94,6 @@ module.exports = {
     }
 
     await queryInterface.bulkInsert("documentos", documentosData, {})
-    console.log(`✅ Insertados ${documentosData.length} documentos de ejemplo`)
   },
 
   async down(queryInterface, Sequelize) {

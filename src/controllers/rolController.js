@@ -222,7 +222,7 @@ const rolController = {
             include: [
                 {
                     model: Permiso,
-                    attributes: ["id_permiso", "nombre", "tipo"],
+                    attributes: ["id_permiso", "nombre", "tipo","descripcion"],
                     through: { attributes: [] },
                 },
             ],

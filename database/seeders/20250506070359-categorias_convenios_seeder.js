@@ -4,7 +4,6 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     if (process.env.NODE_ENV === 'production') {
-      console.log('⚠️ No se crearán datos de ejemplo en entorno de producción');
       return;
     }
 
@@ -14,7 +13,6 @@ module.exports = {
     );
 
     if (convenios.length === 0) {
-      console.log('⚠️ No hay convenios para crear categorías');
       return;
     }
 
@@ -112,7 +110,6 @@ module.exports = {
     }
 
     await queryInterface.bulkInsert('categorias_convenio', categorias, {});
-    console.log(`✅ Creadas ${contador} categorías de convenio de ejemplo`);
   },
 
   async down(queryInterface, Sequelize) {

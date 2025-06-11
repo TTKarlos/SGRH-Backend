@@ -56,14 +56,9 @@ module.exports = {
                     descripcion: "Crear, editar y eliminar ausencias",
                 },
                 {
-                    nombre: "Notificaciones",
+                    nombre: "Informes",
                     tipo: "Lectura",
-                    descripcion: "Ver notificaciones",
-                },
-                {
-                    nombre: "Notificaciones",
-                    tipo: "Escritura",
-                    descripcion: "Crear, editar y eliminar notificaciones",
+                    descripcion: "Ver informes",
                 },
                 {
                     nombre: "Master",

@@ -4,7 +4,6 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     if (process.env.NODE_ENV === 'production') {
-      console.log('⚠️ No se crearán datos de ejemplo en entorno de producción');
       return;
     }
 
@@ -62,7 +61,6 @@ module.exports = {
     ];
 
     await queryInterface.bulkInsert('tipos_contrato', tiposContrato, {});
-    console.log(`✅ Creados ${tiposContrato.length} tipos de contrato de ejemplo`);
   },
 
   async down(queryInterface, Sequelize) {

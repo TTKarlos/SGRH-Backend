@@ -5,9 +5,9 @@ require("dotenv").config()
 const getUploadPath = () => {
   const env = process.env.NODE_ENV || 'development'
   if (env === 'production') {
-    return process.env.PROD_UPLOAD_PATH || '/var/www/sgrh/documentos/empleados'
+    return process.env.PROD_UPLOAD_PATH
   } else {
-    return process.env.DEV_UPLOAD_PATH || path.join(__dirname, "../uploads/documentos/empleados")
+    return process.env.DEV_UPLOAD_PATH
   }
 }
 
@@ -16,7 +16,6 @@ module.exports = {
   async up(queryInterface, Sequelize) {
 
     if (process.env.NODE_ENV === "production") {
-      console.log("⚠️ No se crearán archivos físicos de ejemplo en entorno de producción")
       return
     }
 
@@ -28,7 +27,6 @@ module.exports = {
     )
 
     if (documentos.length === 0) {
-      console.log("No hay documentos para crear archivos físicos de ejemplo")
       return
     }
 
@@ -83,7 +81,6 @@ module.exports = {
       }
     }
 
-    console.log(`✅ Creados ${filesCreated} archivos físicos de ejemplo`)
   },
 
   async down(queryInterface, Sequelize) {

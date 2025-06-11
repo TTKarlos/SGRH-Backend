@@ -18,7 +18,7 @@ module.exports = {
           key: 'id_empleado'
         },
         onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT'
+        onDelete: 'CASCADE'
       },
       id_tipo_contrato: {
         type: Sequelize.INTEGER,

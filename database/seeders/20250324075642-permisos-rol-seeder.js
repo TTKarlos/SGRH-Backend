@@ -44,7 +44,6 @@ module.exports = {
           "Contratos_Lectura", "Contratos_Escritura",
           "Documentos_Lectura", "Documentos_Escritura",
           "Ausencias_Lectura", "Ausencias_Escritura",
-          "Notificaciones_Lectura", "Notificaciones_Escritura"
         ],
         RRHH: [
           "Usuarios_Lectura",
@@ -52,13 +51,11 @@ module.exports = {
           "Contratos_Lectura", "Contratos_Escritura",
           "Documentos_Lectura", "Documentos_Escritura",
           "Ausencias_Lectura", "Ausencias_Escritura",
-          "Notificaciones_Lectura", "Notificaciones_Escritura"
         ],
         USUARIO: [
           "Empleados_Lectura",
           "Documentos_Lectura",
           "Ausencias_Lectura", "Ausencias_Escritura",
-          "Notificaciones_Lectura"
         ]
       };
 
@@ -79,12 +76,10 @@ module.exports = {
               asignaciones.push({ id_rol: rolId, id_permiso });
               contador++;
             } else {
-              console.log(`Advertencia: Permiso "${key}" no encontrado para ${rolNombre}`);
             }
           });
         }
 
-        console.log(`Asignados ${contador} permisos al rol ${rolNombre}`);
         return asignaciones;
       };
 
@@ -93,12 +88,10 @@ module.exports = {
         permisosRol = permisosRol.concat(asignarPermisosRol(rolNombre, permisosKeys));
       }
 
-      console.log(`Total de permisos a insertar: ${permisosRol.length}`);
 
       await queryInterface.bulkInsert("permisos_rol", permisosRol, { transaction });
 
       await transaction.commit();
-      console.log("Inserción de permisos completada con éxito");
 
     } catch (error) {
       await transaction.rollback();

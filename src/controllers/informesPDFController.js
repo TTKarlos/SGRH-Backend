@@ -1035,6 +1035,7 @@ class InformesPDFController {
             InformesPDFController.handlePDFError(res, error, "Error generando informe de contactos")
         }
     }
+
 }
 
 module.exports = InformesPDFController

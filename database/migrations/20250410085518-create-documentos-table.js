@@ -16,7 +16,7 @@ module.exports = {
           key: "id_empleado",
         },
         onUpdate: "CASCADE",
-        onDelete: "RESTRICT",
+        onDelete: "CASCADE",
       },
       nombre: {
         type: Sequelize.STRING(255),
