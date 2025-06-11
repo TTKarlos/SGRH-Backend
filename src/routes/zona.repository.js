@@ -1,7 +1,6 @@
 const express = require("express")
 const zonaController = require("../controllers/zonaController")
 const auth = require("../middlewares/auth")
-const { isAdmin } = require("../middlewares/roleMiddleware")
 const validateRequest = require("../utils/validateRequest")
 const { createZonaSchema, updateZonaSchema } = require("../validations/zonaSchema")
 
@@ -14,9 +13,9 @@ class ZonaRepository {
     setupRoutes() {
         this.router.get("/", auth, zonaController.getAll)
         this.router.get("/:id", auth, zonaController.getById)
-        this.router.post("/", auth, isAdmin, validateRequest(createZonaSchema), zonaController.create)
-        this.router.put("/:id", auth, isAdmin, validateRequest(updateZonaSchema), zonaController.update)
-        this.router.delete("/:id", auth, isAdmin, zonaController.delete)
+        this.router.post("/", auth, validateRequest(createZonaSchema), zonaController.create)
+        this.router.put("/:id", auth, validateRequest(updateZonaSchema), zonaController.update)
+        this.router.delete("/:id", auth, zonaController.delete)
     }
 
     getRoutes() {

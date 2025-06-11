@@ -1,7 +1,6 @@
 const express = require("express")
 const categoriaConvenioController = require("../controllers/categoriaConvenioController")
 const auth = require("../middlewares/auth")
-const { isAdmin } = require("../middlewares/roleMiddleware")
 const validateRequest = require("../utils/validateRequest")
 const {
     createCategoriaConvenioSchema,
@@ -21,18 +20,16 @@ class CategoriaConvenioRepository {
         this.router.post(
             "/",
             auth,
-            isAdmin,
             validateRequest(createCategoriaConvenioSchema),
             categoriaConvenioController.create,
         )
         this.router.put(
             "/:id",
             auth,
-            isAdmin,
             validateRequest(updateCategoriaConvenioSchema),
             categoriaConvenioController.update,
         )
-        this.router.delete("/:id", auth, isAdmin, categoriaConvenioController.delete)
+        this.router.delete("/:id", auth, categoriaConvenioController.delete)
     }
 
     getRoutes() {

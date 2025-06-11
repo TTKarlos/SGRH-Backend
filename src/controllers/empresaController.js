@@ -1,4 +1,4 @@
-const { Empresa, Contrato, Op } = require("../models")
+const { Empresa, Contrato, Empleado, sequelize, Op } = require("../models")
 const AppError = require("../utils/AppError")
 const { createResponse, validateFields, asyncHandler } = require("../utils/responseHelpers")
 const { paginate } = require("../utils/pagination")
@@ -45,15 +45,20 @@ const empresaController = {
         }
 
         const contratosCount = await Contrato.count({
-            where: { id_empresa: id }
+            where: { id_empresa: id },
+        })
+
+        const empleadosCount = await Empleado.count({
+            where: { id_empresa: id },
         })
 
         return res.status(200).json(
             createResponse(true, "Empresa obtenida correctamente", {
                 empresa,
                 estadisticas: {
-                    contratos: contratosCount
-                }
+                    contratos: contratosCount,
+                    empleados: empleadosCount,
+                },
             }),
         )
     }),
@@ -64,7 +69,7 @@ const empresaController = {
         validateFields(["nombre", "cif"], req.body)
 
         const empresaExistente = await Empresa.findOne({
-            where: { cif }
+            where: { cif },
         })
 
         if (empresaExistente) {
@@ -79,9 +84,7 @@ const empresaController = {
             email,
         })
 
-        return res.status(201).json(
-            createResponse(true, "Empresa creada correctamente", { empresa: nuevaEmpresa }, 201)
-        )
+        return res.status(201).json(createResponse(true, "Empresa creada correctamente", { empresa: nuevaEmpresa }, 201))
     }),
 
     update: asyncHandler(async (req, res) => {
@@ -102,8 +105,8 @@ const empresaController = {
             const empresaExistente = await Empresa.findOne({
                 where: {
                     cif,
-                    id_empresa: { [Op.ne]: id }
-                }
+                    id_empresa: { [Op.ne]: id },
+                },
             })
 
             if (empresaExistente) {
@@ -115,9 +118,7 @@ const empresaController = {
 
         await empresa.update(updateData)
 
-        return res.status(200).json(
-            createResponse(true, "Empresa actualizada correctamente", { empresa })
-        )
+        return res.status(200).json(createResponse(true, "Empresa actualizada correctamente", { empresa }))
     }),
 
     delete: asyncHandler(async (req, res) => {
@@ -134,11 +135,15 @@ const empresaController = {
         }
 
         const contratosAsociados = await Contrato.count({
-            where: { id_empresa: id }
+            where: { id_empresa: id },
         })
 
-        if (contratosAsociados > 0) {
-            throw new AppError("No se puede eliminar la empresa porque tiene contratos asociados", 400)
+        const empleadosAsociados = await Empleado.count({
+            where: { id_empresa: id },
+        })
+
+        if (contratosAsociados > 0 || empleadosAsociados > 0) {
+            throw new AppError("No se puede eliminar la empresa porque tiene contratos o empleados asociados", 400)
         }
 
         await empresa.destroy()
@@ -151,8 +156,36 @@ const empresaController = {
 
         return res.status(200).json(
             createResponse(true, "Total de empresas obtenido correctamente", {
-                total: totalEmpresas
-            })
+                total: totalEmpresas,
+            }),
+        )
+    }),
+
+    getEmpleadosDistribution: asyncHandler(async (req, res) => {
+        const empleadosPorEmpresa = await Empleado.findAll({
+            attributes: [
+                [sequelize.col("empresa.id_empresa"), "id_empresa"],
+                [sequelize.col("empresa.nombre"), "nombre_empresa"],
+                [sequelize.fn("COUNT", sequelize.col("Empleado.id_empleado")), "total_empleados"],
+            ],
+            include: [
+                {
+                    model: Empresa,
+                    as: "empresa",
+                    attributes: [],
+                },
+            ],
+            where: {
+                activo: true,
+            },
+            group: ["empresa.id_empresa", "empresa.nombre"],
+            order: [[sequelize.literal("total_empleados"), "DESC"]],
+        })
+
+        return res.status(200).json(
+            createResponse(true, "Distribución de empleados por empresa obtenida correctamente", {
+                data: empleadosPorEmpresa,
+            }),
         )
     }),
 }

@@ -1,7 +1,6 @@
 const express = require("express")
 const departamentoController = require("../controllers/departamentoController")
 const auth = require("../middlewares/auth")
-const { isAdmin } = require("../middlewares/roleMiddleware")
 const validateRequest = require("../utils/validateRequest")
 const {
     createDepartamentoSchema,
@@ -18,10 +17,10 @@ class DepartamentoRepository {
     setupRoutes() {
         this.router.get("/", auth, departamentoController.getAll)
         this.router.get("/:id", auth, departamentoController.getById)
-        this.router.post("/", auth, isAdmin, validateRequest(createDepartamentoSchema), departamentoController.create)
-        this.router.put("/:id", auth, isAdmin, validateRequest(updateDepartamentoSchema), departamentoController.update)
-        this.router.delete("/:id", auth, isAdmin, departamentoController.delete)
-        this.router.patch("/:id", auth, isAdmin, validateRequest(changeStatusSchema), departamentoController.changeStatus)
+        this.router.post("/", auth, validateRequest(createDepartamentoSchema), departamentoController.create)
+        this.router.put("/:id", auth, validateRequest(updateDepartamentoSchema), departamentoController.update)
+        this.router.delete("/:id", auth, departamentoController.delete)
+        this.router.patch("/:id", auth, validateRequest(changeStatusSchema), departamentoController.changeStatus)
     }
 
     getRoutes() {

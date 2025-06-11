@@ -21,7 +21,6 @@ async function checkUploadDirectory() {
 
         await fs.access(uploadPath, fs.constants.W_OK)
 
-        console.log(`✅ Directorio de uploads verificado: ${uploadPath}`)
         return true
     } catch (error) {
         console.error(`❌ Error con el directorio de uploads (${uploadPath}):`, error.message)

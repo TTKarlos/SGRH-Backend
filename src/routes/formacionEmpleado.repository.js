@@ -1,7 +1,6 @@
 const express = require("express")
 const formacionEmpleadoController = require("../controllers/formacionEmpleadoController")
 const auth = require("../middlewares/auth")
-const { isAdmin } = require("../middlewares/roleMiddleware")
 const validateRequest = require("../utils/validateRequest")
 const { createFormacionEmpleadoSchema, updateFormacionEmpleadoSchema } = require("../validations/formacionEmpleadoSchema")
 
@@ -17,18 +16,16 @@ class FormacionEmpleadoRepository {
         this.router.post(
             "/",
             auth,
-            isAdmin,
             validateRequest(createFormacionEmpleadoSchema),
             formacionEmpleadoController.create,
         )
         this.router.put(
             "/:id",
             auth,
-            isAdmin,
             validateRequest(updateFormacionEmpleadoSchema),
             formacionEmpleadoController.update,
         )
-        this.router.delete("/:id", auth, isAdmin, formacionEmpleadoController.delete)
+        this.router.delete("/:id", auth, formacionEmpleadoController.delete)
         this.router.get("/empleado/:id_empleado", auth, formacionEmpleadoController.getByEmpleado)
     }
 

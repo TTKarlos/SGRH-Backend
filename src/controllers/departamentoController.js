@@ -1,4 +1,4 @@
-const { Departamento, Centro, Empleado, Op } = require("../models")
+const { Departamento, Centro, Empleado, sequelize, Op } = require("../models")
 const AppError = require("../utils/AppError")
 const { createResponse, validateFields, asyncHandler } = require("../utils/responseHelpers")
 const { paginate } = require("../utils/pagination")
@@ -230,7 +230,18 @@ const departamentoController = {
         )
     }),
 
+    count: asyncHandler(async (req, res) => {
+        const totalDepartamentos = await Departamento.count({
+            where: { activo: true },
+        })
+
+        return res.status(200).json(
+            createResponse(true, "Total de departamentos obtenido correctamente", {
+                total: totalDepartamentos,
+            }),
+        )
+    }),
+
 }
 
 module.exports = departamentoController
-

@@ -17,6 +17,9 @@ const convenioRepository = require("./convenio.repository")
 const categoriaConvenioRepository = require("./categoriaConvenio.repository")
 const empresaRepository = require("./empresa.repository")
 const informesPDFRepository = require("./informesPDF.repository")
+const dashboardRepository = require("./dashboard.repository")
+
+
 
 class ApiRouter {
     constructor() {
@@ -70,6 +73,9 @@ class ApiRouter {
         // RUTAS DE INFORMES PDF - SISTEMA COMPLETO
         // ========================================
         this.router.use("/informes", informesPDFRepository.getRoutes())
+
+        this.router.use("/dashboard", dashboardRepository.getRoutes())
+
 
         // ========================================
         // RUTA PRINCIPAL Y MANEJO DE ERRORES

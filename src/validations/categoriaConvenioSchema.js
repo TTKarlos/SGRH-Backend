@@ -13,6 +13,9 @@ const createCategoriaConvenioSchema = yup.object().shape({
         .required("El nombre de la categoría es requerido")
         .min(2, "El nombre debe tener al menos 2 caracteres")
         .max(100, "El nombre no puede exceder los 100 caracteres"),
+    descripcion: yup
+    .string()
+        .required("La descripcion es obligatoria")
 })
 
 // Esquema para actualizar una categoría de convenio
@@ -26,6 +29,9 @@ const updateCategoriaConvenioSchema = yup.object().shape({
         .string()
         .min(2, "El nombre debe tener al menos 2 caracteres")
         .max(100, "El nombre no puede exceder los 100 caracteres"),
+    descripcion: yup
+        .string()
+        .required("La descripcion es obligatoria")
 })
 
 module.exports = {

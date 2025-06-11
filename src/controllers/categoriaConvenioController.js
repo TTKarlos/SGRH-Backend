@@ -130,7 +130,7 @@ const categoriaConvenioController = {
     create: asyncHandler(async (req, res) => {
         const { id_convenio, nombre, descripcion } = req.body
 
-        validateFields(["id_convenio", "nombre"], req.body)
+        validateFields(["id_convenio", "nombre","descripcion"], req.body)
 
         const convenio = await Convenio.findByPk(id_convenio)
         if (!convenio) {
@@ -151,7 +151,7 @@ const categoriaConvenioController = {
         const nuevaCategoria = await CategoriaConvenio.create({
             id_convenio,
             nombre,
-            descripcion,
+            descripcion: descripcion || null,
         })
 
         const categoriaConRelaciones = await CategoriaConvenio.findByPk(nuevaCategoria.id_categoria, {
@@ -197,6 +197,7 @@ const categoriaConvenioController = {
                     id_convenio: id_convenio || categoria.id_convenio,
                     nombre: nombre || categoria.nombre,
                     id_categoria: { [Op.ne]: id },
+                    descripcion: descripcion || null,
                 },
             })
 
@@ -205,7 +206,10 @@ const categoriaConvenioController = {
             }
         }
 
-        const updateData = buildUpdateObject(req.body, ["id_convenio", "nombre", "descripcion"])
+        const updateData = {}
+        if (id_convenio !== undefined) updateData.id_convenio = id_convenio
+        if (nombre !== undefined) updateData.nombre = nombre
+        if (descripcion !== undefined) updateData.descripcion = descripcion || null
 
         await categoria.update(updateData)
 
@@ -213,7 +217,7 @@ const categoriaConvenioController = {
             include: [
                 {
                     model: Convenio,
-                    attributes: ["id_convenio", "nombre","descripcion"],
+                    attributes: ["id_convenio", "nombre", "descripcion"],
                 },
             ],
         })

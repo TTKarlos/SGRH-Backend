@@ -1,7 +1,6 @@
 const express = require("express")
 const informesPDFController = require("../controllers/informesPDFController")
 const auth = require("../middlewares/auth")
-const { isAdmin } = require("../middlewares/roleMiddleware")
 
 class InformesPDFRepository {
     constructor() {
@@ -10,7 +9,7 @@ class InformesPDFRepository {
     }
 
     setupRoutes() {
-        this.router.get("/empleados/todos", auth, isAdmin, informesPDFController.todosLosEmpleados)
+        this.router.get("/empleados/todos", auth, informesPDFController.todosLosEmpleados)
         this.router.get("/empleados/estado/activos", auth, informesPDFController.empleadosActivos)
         this.router.get("/empleados/estado/inactivos", auth, informesPDFController.empleadosInactivos)
         this.router.get("/empleados/departamento/general", auth, informesPDFController.empleadosPorDepartamentoGeneral)
@@ -23,7 +22,7 @@ class InformesPDFRepository {
         this.router.get("/empleados/empresa/:id", auth, informesPDFController.empleadosPorEmpresaEspecifica)
         this.router.get("/especiales/cumpleanos/rango", auth, informesPDFController.cumpleanosPorRango)
         this.router.get("/especiales/contactos", auth, informesPDFController.informeContactos)
-        this.router.get("/dashboard/ejecutivo", auth, isAdmin, informesPDFController.dashboardEjecutivo)
+        this.router.get("/dashboard/ejecutivo", auth, informesPDFController.dashboardEjecutivo)
         this.router.get("/opciones/departamentos", auth, this.getOpcionesDepartamentos.bind(this))
         this.router.get("/opciones/centros", auth, this.getOpcionesCentros.bind(this))
         this.router.get("/opciones/zonas", auth, this.getOpcionesZonas.bind(this))

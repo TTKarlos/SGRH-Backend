@@ -12,6 +12,12 @@ const createConvenioSchema = yup.object().shape({
         .string()
         .max(50, "El número de convenio no puede exceder los 50 caracteres")
         .nullable(),
+    descripcion: yup
+    .string()
+        .required("La descipcion del convenio es requerido"),
+    codigo: yup
+        .string()
+        .required("El codigo del convenio es requerido"),
 })
 
 // Esquema para actualizar un convenio
@@ -25,6 +31,12 @@ const updateConvenioSchema = yup.object().shape({
         .string()
         .max(50, "El número de convenio no puede exceder los 50 caracteres")
         .nullable(),
+    descripcion: yup
+        .string()
+        .required("La descipcion del convenio es requerido"),
+    codigo: yup
+        .string()
+        .required("El codigo del convenio es requerido"),
 })
 
 module.exports = {

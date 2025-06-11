@@ -35,7 +35,6 @@ const storage = multer.diskStorage({
 
             await fs.ensureDir(destPath)
 
-            console.log(`Guardando archivo en: ${destPath}`)
             cb(null, destPath)
         } catch (error) {
             console.error("Error al crear directorio:", error)

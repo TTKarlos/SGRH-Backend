@@ -1,4 +1,4 @@
-const { Empleado, Departamento, Centro, Op } = require("../models")
+const { Empleado, Departamento, Centro, Documento, Contrato, Op } = require("../models")
 const AppError = require("../utils/AppError")
 const { createResponse, validateFields, asyncHandler } = require("../utils/responseHelpers")
 const { paginate } = require("../utils/pagination")
@@ -309,6 +309,66 @@ const empleadoController = {
             .json(createResponse(true, "Empleado actualizado correctamente", { empleado: empleadoActualizado }))
     }),
 
+    getDeleteInfo: asyncHandler(async (req, res) => {
+        const { id } = req.params
+
+        if (!id || isNaN(Number.parseInt(id, 10))) {
+            throw new AppError("ID de empleado inválido", 400)
+        }
+
+        const empleado = await Empleado.findByPk(id, {
+            include: [
+                {
+                    model: Documento,
+                    attributes: ['id_documento', 'nombre']
+                },
+                {
+                    model: Contrato,
+                    attributes: ['id_contrato', 'fecha_inicio', 'fecha_fin'],
+                    include: [
+                        {
+                            model: require('../models').TipoContrato,
+                            attributes: ['nombre']
+                        }
+                    ]
+                }
+            ]
+        })
+
+        if (!empleado) {
+            throw new AppError(`Empleado con ID ${id} no encontrado`, 404)
+        }
+
+        const totalDocumentos = empleado.Documentos ? empleado.Documentos.length : 0;
+        const totalContratos = empleado.Contratos ? empleado.Contratos.length : 0;
+
+        return res.status(200).json(
+            createResponse(true, "Información de eliminación obtenida", {
+                empleado: {
+                    id_empleado: empleado.id_empleado,
+                    nombre: empleado.nombre,
+                    apellidos: empleado.apellidos,
+                    dni_nie: empleado.dni_nie
+                },
+                registros_relacionados: {
+                    documentos: totalDocumentos,
+                    contratos: totalContratos,
+                    lista_documentos: empleado.Documentos?.map(doc => ({
+                        id: doc.id_documento,
+                        nombre: doc.nombre
+                    })) || [],
+                    lista_contratos: empleado.Contratos?.map(cont => ({
+                        id: cont.id_contrato,
+                        tipo: cont.TipoContrato?.nombre || 'N/A',
+                        fecha_inicio: cont.fecha_inicio,
+                        fecha_fin: cont.fecha_fin
+                    })) || []
+                },
+                advertencia: "⚠️ Al eliminar este empleado se eliminarán automáticamente todos sus documentos y contratos asociados, incluyendo los archivos físicos."
+            })
+        )
+    }),
+
     delete: asyncHandler(async (req, res) => {
         const { id } = req.params
 
@@ -316,15 +376,43 @@ const empleadoController = {
             throw new AppError("ID de empleado inválido", 400)
         }
 
-        const empleado = await Empleado.findByPk(id)
+        const empleado = await Empleado.findByPk(id, {
+            include: [
+                {
+                    model: Documento,
+                    attributes: ['id_documento', 'nombre', 'ruta_archivo']
+                },
+                {
+                    model: Contrato,
+                    attributes: ['id_contrato', 'ruta_archivo']
+                }
+            ]
+        })
 
         if (!empleado) {
             throw new AppError(`Empleado con ID ${id} no encontrado`, 404)
         }
 
+        const totalDocumentos = empleado.Documentos ? empleado.Documentos.length : 0;
+        const totalContratos = empleado.Contratos ? empleado.Contratos.length : 0;
+
         await empleado.destroy()
 
-        return res.status(200).json(createResponse(true, "Empleado eliminado correctamente"))
+        return res.status(200).json(
+            createResponse(true, "Empleado eliminado correctamente", {
+                empleado_eliminado: {
+                    id_empleado: empleado.id_empleado,
+                    nombre: empleado.nombre,
+                    apellidos: empleado.apellidos,
+                    dni_nie: empleado.dni_nie
+                },
+                registros_eliminados: {
+                    documentos: totalDocumentos,
+                    contratos: totalContratos
+                },
+                mensaje: "Se han eliminado automáticamente todos los registros relacionados y archivos físicos."
+            })
+        )
     }),
 
     changeStatus: asyncHandler(async (req, res) => {

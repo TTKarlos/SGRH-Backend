@@ -1,7 +1,6 @@
 const express = require("express")
 const empleadoController = require("../controllers/empleadoController")
 const auth = require("../middlewares/auth")
-const { isAdmin } = require("../middlewares/roleMiddleware")
 const validateRequest = require("../utils/validateRequest")
 const { createEmpleadoSchema, updateEmpleadoSchema, changeStatusSchema } = require("../validations/empleadoSchema")
 
@@ -17,11 +16,10 @@ class EmpleadoRepository {
         this.router.get("/:id", auth, empleadoController.getById)
         this.router.post("/", auth, validateRequest(createEmpleadoSchema), empleadoController.create)
         this.router.put("/:id", auth, validateRequest(updateEmpleadoSchema), empleadoController.update)
-        this.router.delete("/:id", auth, isAdmin, empleadoController.delete)
+        this.router.delete("/:id", auth, empleadoController.delete)
         this.router.patch(
             "/:id/status",
             auth,
-            isAdmin,
             validateRequest(changeStatusSchema),
             empleadoController.changeStatus,
         )

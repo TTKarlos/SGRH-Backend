@@ -1,4 +1,4 @@
-const { Zona, Centro, Op } = require("../models")
+const { Zona, Centro, Empleado, sequelize, Op } = require("../models")
 const AppError = require("../utils/AppError")
 const { createResponse, validateFields, asyncHandler } = require("../utils/responseHelpers")
 const { paginate } = require("../utils/pagination")
@@ -138,7 +138,59 @@ const zonaController = {
         return res.status(200).json(createResponse(true, "Zona eliminada correctamente"))
     }),
 
+    count: asyncHandler(async (req, res) => {
+        const totalZonas = await Zona.count()
+
+        return res.status(200).json(
+            createResponse(true, "Total de zonas obtenido correctamente", {
+                total: totalZonas,
+            }),
+        )
+    }),
+
+    getChartData: asyncHandler(async (req, res) => {
+        const empleadosPorZona = await Empleado.findAll({
+            attributes: [
+                [sequelize.col("centro.zona.id_zona"), "id"],
+                [sequelize.col("centro.zona.nombre"), "nombre"],
+                [sequelize.fn("COUNT", sequelize.col("Empleado.id_empleado")), "total"],
+            ],
+            include: [
+                {
+                    model: Centro,
+                    as: "centro",
+                    attributes: [],
+                    required: true,
+                    include: [
+                        {
+                            model: Zona,
+                            as: "zona",
+                            attributes: [],
+                            required: true,
+                        },
+                    ],
+                },
+            ],
+            where: {
+                activo: true,
+            },
+            group: ["centro.zona.id_zona", "centro.zona.nombre"],
+            order: [[sequelize.literal("total"), "DESC"]],
+            raw: true,
+        })
+
+        const formattedData = empleadosPorZona.map((item) => ({
+            id: item.id,
+            name: item.nombre || "Sin zona",
+            count: Number.parseInt(item.total) || 0,
+        }))
+
+        return res.status(200).json(
+            createResponse(true, "Datos de gráfica de zonas obtenidos correctamente", {
+                data: formattedData,
+            }),
+        )
+    }),
 }
 
 module.exports = zonaController
-

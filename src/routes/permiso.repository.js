@@ -1,7 +1,6 @@
 const express = require("express")
 const permisoController = require("../controllers/permisoController")
 const auth = require("../middlewares/auth")
-const { isAdmin } = require("../middlewares/roleMiddleware")
 
 class PermisoRepository {
     constructor() {
@@ -10,8 +9,8 @@ class PermisoRepository {
     }
 
     setupRoutes() {
-        this.router.get("/", auth, isAdmin, permisoController.getAllPermisos)
-        this.router.get("/:id", auth, isAdmin, permisoController.getPermisoById)
+        this.router.get("/", auth, permisoController.getAllPermisos)
+        this.router.get("/:id", auth, permisoController.getPermisoById)
     }
 
     getRoutes() {

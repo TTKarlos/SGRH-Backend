@@ -2,7 +2,7 @@ const { Convenio, CategoriaConvenio, Contrato, Op } = require("../models")
 const AppError = require("../utils/AppError")
 const { createResponse, validateFields, asyncHandler } = require("../utils/responseHelpers")
 const { paginate } = require("../utils/pagination")
-const { buildSearchClause, buildUpdateObject } = require("../utils/queryBuilder")
+const { buildSearchClause } = require("../utils/queryBuilder")
 
 const convenioController = {
     getAll: asyncHandler(async (req, res) => {
@@ -13,7 +13,7 @@ const convenioController = {
         let whereClause = {}
 
         if (search) {
-            whereClause = buildSearchClause(search, ["nombre", "numero_convenio","codigo"])
+            whereClause = buildSearchClause(search, ["nombre", "numero_convenio"])
         }
 
         const options = {
@@ -42,7 +42,7 @@ const convenioController = {
             include: [
                 {
                     model: CategoriaConvenio,
-                    attributes: ["id_categoria", "nombre", "codigo"],
+                    attributes: ["id_categoria", "nombre", "descripcion"],
                 },
             ],
         })
@@ -52,7 +52,7 @@ const convenioController = {
         }
 
         const contratosCount = await Contrato.count({
-            where: { id_convenio: id }
+            where: { id_convenio: id },
         })
 
         return res.status(200).json(
@@ -60,20 +60,20 @@ const convenioController = {
                 convenio,
                 estadisticas: {
                     categorias: convenio.CategoriaConvenios ? convenio.CategoriaConvenios.length : 0,
-                    contratos: contratosCount
-                }
+                    contratos: contratosCount,
+                },
             }),
         )
     }),
 
     create: asyncHandler(async (req, res) => {
-        const { nombre, numero_convenio } = req.body
+        const { nombre, numero_convenio, descripcion,codigo } = req.body
 
-        validateFields(["nombre"], req.body)
+        validateFields(["descripcion","nombre","codigo"], req.body)
 
         if (numero_convenio) {
             const convenioExistente = await Convenio.findOne({
-                where: { numero_convenio }
+                where: { numero_convenio },
             })
 
             if (convenioExistente) {
@@ -82,18 +82,18 @@ const convenioController = {
         }
 
         const nuevoConvenio = await Convenio.create({
-            nombre,
-            numero_convenio,
+            nombre: nombre.trim(),
+            numero_convenio: numero_convenio ? numero_convenio.trim() : null,
+            descripcion: descripcion ? descripcion.trim() : null,
+            codigo: codigo.trim(),
         })
 
-        return res.status(201).json(
-            createResponse(true, "Convenio creado correctamente", { convenio: nuevoConvenio }, 201)
-        )
+        return res.status(201).json(createResponse(true, "Convenio creado correctamente", { convenio: nuevoConvenio }, 201))
     }),
 
     update: asyncHandler(async (req, res) => {
         const { id } = req.params
-        const { nombre, numero_convenio } = req.body
+        const { nombre, numero_convenio, descripcion, codigo } = req.body
 
         if (!id || isNaN(Number.parseInt(id, 10))) {
             throw new AppError("ID de convenio inválido", 400)
@@ -109,8 +109,8 @@ const convenioController = {
             const convenioExistente = await Convenio.findOne({
                 where: {
                     numero_convenio,
-                    id_convenio: { [Op.ne]: id }
-                }
+                    id_convenio: { [Op.ne]: id },
+                },
             })
 
             if (convenioExistente) {
@@ -118,13 +118,35 @@ const convenioController = {
             }
         }
 
-        const updateData = buildUpdateObject(req.body, ["nombre", "numero_convenio"])
+        const updateData = {}
+
+        if (nombre !== undefined) {
+            updateData.nombre = nombre.trim()
+        }
+
+        if (numero_convenio !== undefined) {
+            updateData.numero_convenio = numero_convenio ? numero_convenio.trim() : null
+        }
+
+        if (descripcion !== undefined) {
+            updateData.descripcion = descripcion ? descripcion.trim() : null
+        }
+
+        if (codigo !== undefined) {
+            updateData.codigo = codigo ? codigo.trim() : null
+        }
+
+        console.log("Datos de actualización:", updateData)
 
         await convenio.update(updateData)
 
-        return res.status(200).json(
-            createResponse(true, "Convenio actualizado correctamente", { convenio })
-        )
+        const convenioActualizado = await Convenio.findByPk(id)
+
+        console.log("Convenio actualizado:", convenioActualizado.toJSON())
+
+        return res
+            .status(200)
+            .json(createResponse(true, "Convenio actualizado correctamente", { convenio: convenioActualizado }))
     }),
 
     delete: asyncHandler(async (req, res) => {
@@ -141,7 +163,7 @@ const convenioController = {
         }
 
         const categoriasAsociadas = await CategoriaConvenio.count({
-            where: { id_convenio: id }
+            where: { id_convenio: id },
         })
 
         if (categoriasAsociadas > 0) {
@@ -149,7 +171,7 @@ const convenioController = {
         }
 
         const contratosAsociados = await Contrato.count({
-            where: { id_convenio: id }
+            where: { id_convenio: id },
         })
 
         if (contratosAsociados > 0) {
